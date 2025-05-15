@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Feedback - Plataforma de Estudos</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <script>
+        if (!sessionStorage.getItem('loggedInUser')) {
+            alert('Você precisa fazer login para acessar esta página.');
+            window.location.href = 'login.html';
+        }
+    </script>
+    <div class="container">
+        <header>
+            <a href="home.html" class="btn-voltar">&larr; Voltar para Home</a>
+            <h1>Enviar Feedback</h1>
+        </header>
+
+        <main>
+            <section class="card" id="feedback-section">
+                <h2><i class="icon">💬</i> Compartilhe sua Opinião</h2>
+                <p>Seu feedback é muito importante para nós melhorarmos a plataforma!</p>
+                <form id="form-feedback">
+                    <div class="form-group">
+                        <label for="nome">Nome Completo:</label>
+                        <input type="text" id="nome" name="nome" required placeholder="Ex: João da Silva">
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" id="email" name="email" required placeholder="Ex: seuemail@dominio.com">
+                    </div>
+                    <div class="form-group">
+                        <label for="telefone">Telefone:</label>
+                        <input type="tel" id="telefone" name="telefone" placeholder="Ex: (XX) XXXXX-XXXX">
+                    </div>
+                    <div class="form-group">
+                        <label for="mensagem">Descrição: </label>
+                        <textarea id="mensagem" name="mensagem" required placeholder="Digite sua mensagem aqui..."></textarea>
+                    </div>
+                    <button type="submit" class="btn-add">Enviar Feedback</button>
+                    <p id="mensagem-sucesso-feedback" class="mensagem sucesso"></p>
+                </form>
+            </section>
+        </main>
+
+        <footer>
+            <p>&copy; 2025 Plataforma de Estudos</p>
+        </footer>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>

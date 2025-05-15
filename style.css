@@ -1,0 +1,842 @@
+/* Variáveis de Cor e Fonte (iguais às anteriores) */
+:root {
+    --cor-primaria: #6a11cb;
+    /* Roxo vibrante */
+    --cor-secundaria: #00CDA0;
+    /* Azul vibrante */
+    --cor-fundo: #f0f2f5;
+    /* Fundo claro */
+    --cor-card: #ffffff;
+    /* Branco para os cards */
+    --cor-texto-titulo: #333;
+    --cor-texto-corpo: #555;
+    --cor-texto-botao: #ffffff;
+    --cor-borda: #e0e0e0;
+    --cor-sombra: rgba(0, 0, 0, 0.1);
+    --cor-delete: #e74c3c;
+    /* Vermelho para botão de remover */
+    --cor-delete-hover: #c0392b;
+    --cor-sucesso: #2ecc71;
+    /* Verde para mensagens de sucesso */
+    --cor-textos: #4636a4;
+    --fonte-principal: 'Poppins', sans-serif;
+    /* Fonte jovem */
+}
+
+/* Reset básico e Estilos Globais (iguais) */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--fonte-principal);
+    background: linear-gradient(135deg, #6B2ED1, #00C6A2);
+    min-height: 100vh;
+    color: var(--cor-texto-corpo);
+    line-height: 1.6;
+    padding: 20px;
+}
+
+.container {
+    max-width: 550px;
+    /* largura máxima */
+    width: 100%;
+    /* ocupa 100% até atingir o máximo */
+    margin: 0 auto;
+    /* caliza horizontalmente */
+    border-radius: 12px;
+    padding: 2rem;
+}
+
+/* Cabeçalho */
+header {
+    text-align: center;
+    margin-bottom: 30px;
+    color: var(--cor-texto-botao);
+    padding-top: 20px;
+
+    /* Espaço para o botão voltar não sobrepor */
+}
+
+
+header h1 {
+    font-size: 2.5em;
+    font-weight: 700;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+header p {
+    font-size: 1.1em;
+    opacity: 0.9;
+}
+
+/* Botão Voltar */
+.btn-voltar {
+    position: absolute;
+    top: 25px;
+    left: 25px;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    text-decoration: none;
+    font-size: 0.9em;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+}
+
+.btn-feedback {
+    position: absolute;
+    top: 25px;
+    right: 25px;
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    text-decoration: none;
+    font-size: 0.9em;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+}
+
+.btn-voltar:hover {
+    background-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Estilo dos Cards (igual) */
+.card {
+    background-color: var(--cor-card);
+    padding: 25px;
+    margin-bottom: 25px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px var(--cor-sombra);
+    border: 1px solid var(--cor-borda);
+}
+
+.card h2 {
+    color: #4636a4;
+    margin-bottom: 20px;
+    font-size: 1.6em;
+    font-weight: 600;
+    border-bottom: 2px solid var(--cor-secundaria);
+    padding-bottom: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.card h2 i {
+    margin-right: 10px;
+    font-style: normal;
+}
+
+/* Menu da Home Page */
+.home-menu {
+    background-color: var(--cor-card);
+    padding: 30px 40px;
+    /* Mais padding lateral */
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    text-align: center;
+}
+
+.home-menu h2 {
+    color: #4636a4;
+    margin-bottom: 25px;
+    font-size: 1.8em;
+}
+
+.home-menu nav {
+    display: flex;
+    flex-direction: column;
+    /* Botões um abaixo do outro */
+    gap: 20px;
+    /* Espaço entre botões */
+    align-items: center;
+}
+
+.menu-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: left;
+    padding: 30px 50px;
+    /* Aumente o padding */
+    background: rgba(255, 255, 255, 0.9em);
+    color: #4636a4;
+    text-decoration: none;
+    border-radius: 13px;
+    font-size: 20px;
+    /* Defina um tamanho fixo em pixels */
+    font-weight: 1000;
+    width: 95%;
+    /* Aumente a largura */
+    max-width: 800px;
+    /* Aumente a largura máxima se necessário */
+    height: 80px;
+    /* Adicione altura fixa */
+    transition: all 0.3s ease;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05),
+        0px 4px 6px rgba(0, 0, 0, 0.1);
+    text-align: left;
+}
+
+/* Media query para ajustar o tamanho do texto em telas menores */
+@media (max-width: 600px) {
+    .menu-button {
+        font-size: 20px;
+        /* Mantenha o tamanho do texto fixo */
+    }
+}
+
+.menu-button i {
+    margin-right: 10px;
+    font-style: normal;
+}
+
+.menu-button:hover {
+    opacity: 0.9;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Formulário de Tarefas (igual) */
+#form-tarefa {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.input-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.input-group label {
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: var(--cor-texto-titulo);
+}
+
+#form-tarefa input[type="text"],
+#form-tarefa input[type="date"],
+#texto-anotacoes {
+    padding: 12px;
+    border: 1px solid var(--cor-borda);
+    border-radius: 5px;
+    font-family: var(--fonte-principal);
+    font-size: 1em;
+    width: 100%;
+}
+
+#form-tarefa input[type="text"]:focus,
+#form-tarefa input[type="date"]:focus,
+#texto-anotacoes:focus {
+    outline: none;
+    border-color: var(--cor-secundaria);
+    box-shadow: 0 0 5px rgba(37, 117, 252, 0.3);
+}
+
+/* Botões (gerais) */
+.btn-add,
+.btn-delete,
+#btn-salvar-anotacoes {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-family: var(--fonte-principal);
+    font-weight: 600;
+    font-size: 1em;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.btn-add,
+#btn-salvar-anotacoes {
+    background: linear-gradient(135deg, var(--cor-primaria), var(--cor-secundaria));
+    color: var(--cor-texto-botao);
+    align-self: flex-start;
+    margin-top: 10px;
+    /* Espaço acima do botão */
+}
+
+.btn-add:hover,
+#btn-salvar-anotacoes:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+}
+
+.btn-delete {
+    background-color: var(--cor-delete);
+    color: var(--cor-texto-botao);
+    margin-left: 10px;
+    font-size: 0.9em;
+    padding: 5px 10px;
+}
+
+.btn-delete:hover {
+    background-color: var(--cor-delete-hover);
+    transform: scale(1.05);
+}
+
+/* Lista de Tarefas (igual) */
+#lista-tarefas {
+    list-style: none;
+    padding: 0;
+    margin-top: 20px;
+    /* Espaço acima da lista */
+}
+
+#lista-tarefas li {
+    background-color: #f9f9f9;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    border-left: 5px solid var(--cor-secundaria);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+#lista-tarefas li span:first-child {
+    /* Nome da tarefa */
+    flex-grow: 1;
+    margin-right: 10px;
+    font-weight: 600;
+    /* Dar um destaque ao nome */
+}
+
+#lista-tarefas li .prazo {
+    font-size: 0.9em;
+    color: #888;
+    font-style: italic;
+    margin-right: 10px;
+    white-space: nowrap;
+    /* Evita quebra de linha no prazo */
+}
+
+/* Anotações (igual) */
+#anotacoes textarea {
+    width: 100%;
+    min-height: 200px;
+    /* Aumentar um pouco a altura */
+    resize: vertical;
+    margin-bottom: 15px;
+    /* Espaço antes do botão salvar */
+}
+
+/* Mensagens de Feedback */
+.mensagem {
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 5px;
+    text-align: center;
+    font-weight: 600;
+    display: none;
+    /* Começa escondida */
+}
+
+.sucesso {
+    background-color: #d4edda;
+    /* Fundo verde claro */
+    color: #155724;
+    /* Texto verde escuro */
+    border: 1px solid #c3e6cb;
+}
+
+/* Estilos para Notificações Visuais de Prazo (igual) */
+.prazo-proximo {
+    border-left-color: #f39c12 !important;
+    background-color: #fff8e1 !important;
+}
+
+.prazo-vencido {
+    border-left-color: var(--cor-delete) !important;
+    background-color: #ffebee !important;
+    opacity: 0.8;
+}
+
+.prazo-vencido span:first-child {
+    text-decoration: line-through;
+}
+
+.prazo-proximo .prazo,
+.prazo-vencido .prazo {
+    font-weight: bold;
+    font-style: normal;
+}
+
+.prazo-proximo .prazo {
+    color: #e67e22;
+}
+
+.prazo-vencido .prazo {
+    color: var(--cor-delete);
+}
+
+
+/* Rodapé (igual) */
+footer {
+    text-align: center;
+    margin-top: 30px;
+    padding-top: 15px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.9em;
+}
+
+.auth-nav {
+    display: flex;
+    gap: 20px;
+    justify-content: space-between;
+    margin-top: 20px;
+    /* Espaço acima do nav */
+}
+
+.body-auth {
+    /* Fundo diferente para login/registro */
+    background: linear-gradient(135deg, var(--cor-primaria), var(--cor-secundaria));
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    /* Ocupa a altura toda da tela */
+    padding: 20px;
+}
+
+.auth-container {
+    width: 100%;
+    max-width: 450px;
+    /* Largura máxima do card de auth */
+}
+
+.auth-card {
+    background-color: var(--cor-card);
+    padding: 30px 40px;
+    /* Mais padding lateral */
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    text-align: center;
+}
+
+.auth-card h1 {
+    font-size: 1.5em;
+    /* Título menor no card */
+    color: var(--cor-primaria);
+    margin-bottom: 5px;
+    text-shadow: none;
+    /* Sem sombra de texto aqui */
+}
+
+.auth-card h2 {
+    font-size: 1.8em;
+    /* Título principal do card */
+    color: var(--cor-texto-titulo);
+    margin-bottom: 25px;
+    border: none;
+    /* Sem borda inferior */
+    padding-bottom: 0;
+    font-weight: 600;
+}
+
+.form-auth {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    /* Espaço entre os inputs */
+    text-align: left;
+    /* Alinha labels à esquerda */
+}
+
+.form-auth .input-group label {
+    font-weight: 600;
+    color: var(--cor-texto-titulo);
+    margin-bottom: 8px;
+    /* Mais espaço abaixo da label */
+    display: block;
+    /* Garante que a label fique acima */
+}
+
+.form-auth input[type="text"],
+.form-auth input[type="password"],
+.form-auth input[type="email"] {
+    /* Adicionado email se usar */
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid var(--cor-borda);
+    border-radius: 5px;
+    font-family: var(--fonte-principal);
+    font-size: 1em;
+}
+
+.form-auth input:focus {
+    outline: none;
+    border-color: var(--cor-secundaria);
+    box-shadow: 0 0 5px rgba(37, 117, 252, 0.3);
+}
+
+.btn-auth {
+    padding: 14px 20px;
+    border: none;
+    border-radius: 5px;
+    background: linear-gradient(135deg, var(--cor-primaria), var(--cor-secundaria));
+    color: var(--cor-texto-botao);
+    font-family: var(--fonte-principal);
+    font-weight: 600;
+    font-size: 1.1em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 10px;
+    /* Espaço acima do botão */
+}
+
+.btn-auth:hover {
+    opacity: 0.9;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.auth-switch {
+    margin-top: 25px;
+    font-size: 0.95em;
+    color: var(--cor-texto-corpo);
+}
+
+.auth-switch a {
+    color: var(--cor-secundaria);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.auth-switch a:hover {
+    text-decoration: underline;
+}
+
+/* Estilo para mensagens de erro/sucesso nos forms auth */
+.form-auth .mensagem {
+    margin-top: 0;
+    /* Remover margem extra */
+    margin-bottom: -5px;
+    /* Puxar um pouco pra cima */
+    padding: 10px;
+    font-size: 0.9em;
+    text-align: center;
+}
+
+.erro {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+
+/* --- Estilos para Botão Logout --- */
+.btn-logout {
+    position: absolute;
+    top: 25px;
+    right: 25px;
+    /* Posiciona no canto direito */
+    background-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    text-decoration: none;
+    font-size: 0.9em;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    z-index: 10;
+    /* Garante que fique acima de outros elementos do header */
+}
+
+.btn-logout:hover {
+    background-color: rgba(255, 255, 255, 0.4);
+}
+
+/* Estilo base do item da lista (opcional, ajuste como preferir) */
+li {
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+    display: flex;
+    /* Ajuda a alinhar itens internos */
+    align-items: center;
+    /* Alinha verticalmente */
+    gap: 10px;
+    /* Espaço entre os elementos (checkbox, texto, etc.) */
+}
+
+/* Estilo quando a tarefa está concluída */
+li.concluida {
+    background-color: #90EE90;
+    /* Verde claro (lightgreen) */
+    /* text-decoration: line-through; */
+    /* Tacha o texto */
+    color: #555;
+    /* Pode escurecer um pouco o texto */
+    /* Adicione outros estilos que desejar para o item concluído */
+}
+
+/* Adiciona o texto "Entregue" após o conteúdo do item concluído */
+li.concluida::after {
+    content: "(Entregue)";
+    /* O texto a ser exibido */
+    font-style: italic;
+    /* Estilo itálico */
+    color: darkgreen;
+    /* Cor do texto "Entregue" */
+    margin-left: auto;
+    /* Empurra para a direita (se usar flexbox no li) */
+    padding-left: 10px;
+    /* Espaçamento à esquerda */
+}
+
+/* Opcional: Esconder o botão remover quando concluído, se desejar */
+
+li.concluida .btn-remover {
+    display: none;
+}
+
+
+/* Estilos para os spans dentro do li (ajuste conforme necessário) */
+li span {
+    flex-grow: 1;
+    /* Faz o nome da tarefa ocupar espaço disponível */
+}
+
+/* --- Estilos para Painel de Anotações Salvas --- */
+
+#painel-anotacoes-salvas {
+    margin-top: 30px;
+    /* Espaço acima do painel */
+}
+
+#lista-anotacoes-salvas {
+    list-style: none;
+    /* Remove marcadores da lista */
+    padding: 0;
+    margin-top: 15px;
+    /* Espaço acima da lista */
+}
+
+#lista-anotacoes-salvas li {
+    background-color: #fdfdfd;
+    /* Fundo levemente diferente */
+    border: 1px solid var(--cor-borda);
+    border-left: 4px solid var(--cor-primaria);
+    /* Destaque esquerdo roxo */
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    /* Itens (texto, botão) um abaixo do outro */
+    gap: 10px;
+    /* Espaço entre texto e botão */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    word-wrap: break-word;
+    /* Quebra palavras longas */
+}
+
+#lista-anotacoes-salvas li .anotacao-texto {
+    font-size: 1em;
+    line-height: 1.5;
+    color: var(--cor-texto-corpo);
+    white-space: pre-wrap;
+    /* Preserva espaços em branco e quebras de linha do texto */
+    flex-grow: 1;
+    /* Ocupa espaço disponível */
+}
+
+#lista-anotacoes-salvas li .anotacao-actions {
+    display: flex;
+    justify-content: flex-end;
+    /* Alinha botão à direita */
+}
+
+.btn-delete-nota {
+    /* Reutilizar estilo do botão delete de tarefas ou criar um novo */
+    background-color: var(--cor-delete);
+    color: var(--cor-texto-botao);
+    border: none;
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-size: 0.85em;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn-delete-nota:hover {
+    background-color: var(--cor-delete-hover);
+}
+
+/* Responsividade (igual, mas ajustar botão voltar se necessário) */
+@media (max-width: 600px) {
+    header h1 {
+        font-size: 1.8em;
+        /* Reduzir um pouco mais */
+    }
+
+
+    .container {
+        padding: 20px;
+        /* Menos padding no container geral */
+    }
+
+    .btn-voltar {
+        top: 15px;
+        left: 15px;
+        padding: 6px 12px;
+        font-size: 0.8em;
+    }
+
+    header {
+        padding-top: 40px;
+        /* Mais espaço para o botão voltar */
+        margin-bottom: 20px;
+    }
+
+    .card h2 {
+        font-size: 1.4em;
+    }
+
+    .menu-button {
+        width: 95%;
+        /* Botões ocupam mais largura */
+        font-size: 1em;
+        padding: 12px 20px;
+    }
+
+    #lista-tarefas li {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    #lista-tarefas li span:first-child {
+        /* Nome da tarefa */
+        margin-bottom: 5px;
+        /* Espaço abaixo do nome */
+    }
+
+    #lista-tarefas li .prazo {
+        margin-bottom: 8px;
+        /* Espaço abaixo do prazo */
+    }
+
+    .btn-delete {
+        margin-left: 0;
+        margin-top: 5px;
+        align-self: flex-end;
+        /* Mantém botão no canto */
+    }
+
+    .btn-add,
+    #btn-salvar-anotacoes {
+        align-self: stretch;
+        /* Botão ocupa largura toda */
+        text-align: center;
+    }
+
+    /* --- Estilos para Páginas de Autenticação (Login/Registro) --- */
+
+
+
+    /* Ajuste responsivo para o botão logout */
+    @media (max-width: 600px) {
+        .btn-logout {
+            top: 15px;
+            right: 15px;
+            padding: 6px 12px;
+            font-size: 0.8em;
+        }
+
+        /* Ajustar header se o botão voltar e logout estiverem juntos */
+        .container header {
+            position: relative;
+            /* Garante contexto para botões absolutos */
+        }
+    }
+
+    /* Botão Feedback */
+
+    .btn-feedback:hover {
+        background-color: rgba(255, 255, 255, 0.4);
+    }
+}
+
+/* Estilo para o container do formulário */
+form#meuFormulario {
+    background-color: #ffffff;
+    /* Cor de fundo do formulário */
+    padding: 25px;
+    border-radius: 8px;
+    /* Bordas arredondadas */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    /* Sombra suave */
+    width: 100%;
+    max-width: 500px;
+    /* Largura máxima do formulário */
+}
+
+.form-group {
+    margin-bottom: 20px;
+    /* Aumenta o espaçamento entre os campos */
+}
+
+/* Estilo para as labels (os textos "Nome Completo:", "Email:", etc.) */
+label {
+    display: block;
+    margin-bottom: 8px;
+    /* Espaçamento abaixo da label */
+    font-weight: bold;
+    color: #333333;
+    /* Cor do texto da label */
+    font-size: 0.9em;
+    /* Tamanho da fonte da label */
+}
+
+/* Estilo geral para inputs de texto, email, telefone e textarea */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+textarea {
+    width: calc(100% - 24px);
+    /* Largura total menos padding */
+    padding: 12px;
+    /* Aumenta o padding interno */
+    border: 1px solid #dddddd;
+    /* Cor da borda */
+    border-radius: 5px;
+    /* Bordas levemente arredondadas */
+    font-size: 1em;
+    /*Tamanho da fonte dentro do input */
+    color: #555555;
+    /* Cor do texto digitado */
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    /* Transição suave */
+}
+
+/* Estilo específico para textarea */
+textarea {
+    height: 120px;
+    /* Altura da textarea */
+    resize: vertical;
+    /* Permite redimensionar apenas verticalmente */
+    font-family: var(--fonte-principal);
+}
+
+/* Estilo para inputs quando estão em foco (clicados) */
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="tel"]:focus,
+textarea:focus {
+    border-color: #007bff;
+    /* Cor da borda ao focar */
+    outline: none;
+    /* Remove o contorno padrão do navegador */
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    /* Sombra ao focar, similar ao Bootstrap */
+}
+/* Estilo para o botão de enviar */

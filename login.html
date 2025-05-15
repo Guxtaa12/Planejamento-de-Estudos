@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Plataforma de Estudos</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+</head>
+<body class="body-auth"> <div class="auth-container">
+        <div class="card auth-card">
+            <h1>Plataforma de Estudos</h1>
+            <h2>Login</h2>
+            <form id="form-login" class="form-auth">
+                <div class="input-group">
+                    <label for="login-usuario">Usuário (ou Email):</label>
+                    <input type="text" id="login-usuario" required>
+                </div>
+                <div class="input-group">
+                    <label for="login-senha">Senha:</label>
+                    <input type="password" id="login-senha" required>
+                </div>
+                <button type="submit" class="btn-auth">Entrar</button>
+                <p id="login-error-message" class="mensagem erro"></p> </form>
+            <p class="auth-switch">Não tem uma conta? <a href="registrar.html">Registre-se aqui</a></p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
