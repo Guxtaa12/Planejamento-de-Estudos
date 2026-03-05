@@ -1,224 +1,225 @@
-// Executa quando o DOM (estrutura HTML) estiver totalmente carregado
-document.addEventListener('DOMContentLoaded', function () {
+// ==========================================
+// FUNÇÕES DE COMUNICAÇÃO COM A API (PYTHON)
+// ==========================================
 
-    // --- Funções Utilitárias para Usuários (localStorage - INSEGURO!) ---
-    const USER_STORAGE_KEY = 'plataformaUsuarios'; // Chave para guardar usuários
+async function registrarUsuario(event) {
+    event.preventDefault();
 
-    // Pega usuários do localStorage (INSEGURO)
-    function getUsuariosRegistrados() {
-        const usuariosJson = localStorage.getItem(USER_STORAGE_KEY);
-        return usuariosJson ? JSON.parse(usuariosJson) : {}; // Retorna um objeto
-    }
-
-    // Salva usuários no localStorage (INSEGURO)
-    function salvarUsuarios(usuarios) {
-        localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(usuarios));
-        console.log('Usuários salvos com sucesso!');
-        registerMessage.textContent = 'Registro realizado com sucesso! Você será redirecionado.';
-        registerMessage.className = 'mensagem sucesso'; // Adiciona classe de sucesso
-        registerMessage.style.display = 'block';
-
-        // Exibe a mensagem de sucesso por 5 segundos
-        setTimeout(() => {
-            registerMessage.style.display = 'none';
-            // Poderia redirecionar para o login: 
-            window.location.href = 'login.html';
-        }, 3000); // = 3 segundos
-    }
-
-
-
-
-
-    // --- Lógica da Página: Registro (registrar.html) ---
-    const formRegistrar = document.getElementById('form-registrar');
-    const inputUsuarioRegistro = document.getElementById('registrar-usuario');
-    const inputSenhaRegistro = document.getElementById('registrar-senha');
+    // Pega os três valores separados agora
+    const inputNomeRegistro = document.getElementById('registrar-nome').value.trim();
+    const inputEmailRegistro = document.getElementById('registrar-email').value.trim();
+    const inputSenhaRegistro = document.getElementById('registrar-senha').value;
     const registerMessage = document.getElementById('register-message');
 
-    if (formRegistrar) {
-        formRegistrar.addEventListener('submit', function (e) {
-            e.preventDefault();
-            const username = inputUsuarioRegistro.value.trim();
-            const password = inputSenhaRegistro.value; // NÃO FAÇA HASH AQUI (ainda inseguro)
-
-            if (!username || !password) {
-                if (registerMessage) {
-                    registerMessage.textContent = 'Por favor, preencha todos os campos.';
-                    registerMessage.className = 'mensagem erro'; // Adiciona classe de erro
-                    registerMessage.style.display = 'block';
-                }
-                return;
-            }
-
-            const usuarios = getUsuariosRegistrados();
-
-            // Verifica se o usuário já existe (simples verificação por chave)
-            if (usuarios[username]) {
-                if (registerMessage) {
-                    registerMessage.textContent = 'Este nome de usuário já está em uso.';
-                    registerMessage.className = 'mensagem erro';
-                    registerMessage.style.display = 'block';
-                }
-            } else {
-                // Adiciona o novo usuário (INSEGURO - senha em texto plano)
-                usuarios[username] = password;
-                // Salva os usuários no localStorage
-                salvarUsuarios(usuarios);
-
-
-
-
-                // Limpa o formulário
-                inputUsuarioRegistro.value = '';
-                inputSenhaRegistro.value = '';
-
-            }
-        });
+    // Validação simples para ver se nenhum dos três está vazio
+    if (!inputNomeRegistro || !inputEmailRegistro || !inputSenhaRegistro) {
+        if (registerMessage) {
+            registerMessage.textContent = 'Por favor, preencha todos os campos.';
+            registerMessage.className = 'mensagem erro';
+            registerMessage.style.display = 'block';
+        }
+        return;
     }
 
-    // --- Lógica da Página: Login (login.html) ---
-    const formLogin = document.getElementById('form-login');
-    const inputUsuarioLogin = document.getElementById('login-usuario');
-    const inputSenhaLogin = document.getElementById('login-senha');
-    const loginErrorMessage = document.getElementById('login-error-message');
+    // Monta o pacote certinho para o Python
+    const dadosUsuario = {
+        nome: inputNomeRegistro,
+        email: inputEmailRegistro,
+        senha: inputSenhaRegistro
+    };
 
-    if (formLogin) {
-        formLogin.addEventListener('submit', function (e) {
-            e.preventDefault();
-            const username = inputUsuarioLogin.value.trim();
-            const password = inputSenhaLogin.value;
+    try {
+        const resposta = await fetch('http://127.0.0.1:8000/registrar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dadosUsuario)
+        });
 
-            if (!username || !password) {
-                if (loginErrorMessage) {
-                    loginErrorMessage.textContent = 'Por favor, preencha usuário e senha.';
-                    loginErrorMessage.style.display = 'block';
-                }
-                return;
+        const resultado = await resposta.json();
+
+        if (resposta.ok) {
+            if (registerMessage) {
+                registerMessage.textContent = 'Registro realizado com sucesso! Você será redirecionado.';
+                registerMessage.className = 'mensagem sucesso';
+                registerMessage.style.color = '#28a745';
+                registerMessage.style.display = 'block';
             }
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 3000);
+        } else {
+            if (registerMessage) {
+                registerMessage.textContent = 'Erro: ' + resultado.erro;
+                registerMessage.className = 'mensagem erro';
+                registerMessage.style.color = '#dc3545';
+                registerMessage.style.display = 'block';
+            }
+        }
+    } catch (erro) {
+        console.error('Erro:', erro);
+        if (registerMessage) {
+            registerMessage.textContent = 'Erro ao conectar com o servidor Python.';
+            registerMessage.className = 'mensagem erro';
+            registerMessage.style.color = '#dc3545';
+            registerMessage.style.display = 'block';
+        }
+    }
+}
 
-            const usuarios = getUsuariosRegistrados();
+async function fazerLogin(event) {
+    event.preventDefault();
 
-            // Verifica se usuário existe e se a senha bate (INSEGURO)
-            if (usuarios[username] && usuarios[username] === password) {
-                // Login bem-sucedido!
-                // Salva o nome do usuário na sessionStorage para indicar que está logado NESSA SESSÃO
-                sessionStorage.setItem('loggedInUser', username);
-                // Redireciona para a página principal
+    const emailOuUsuario = document.getElementById('login-usuario').value.trim();
+    const senhaDigitada = document.getElementById('login-senha').value;
+    const mensagemTexto = document.getElementById('login-error-message');
+
+    if (!emailOuUsuario || !senhaDigitada) {
+        if (mensagemTexto) {
+            mensagemTexto.textContent = 'Por favor, preencha usuário e senha.';
+            mensagemTexto.style.display = 'block';
+            mensagemTexto.style.color = '#dc3545';
+        }
+        return;
+    }
+
+    const dadosLogin = {
+        usuario: emailOuUsuario,
+
+        senha: senhaDigitada
+    };
+
+    try {
+        const resposta = await fetch('http://127.0.0.1:8000/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dadosLogin)
+        });
+
+        const resultado = await resposta.json();
+
+        if (resposta.ok) {
+            // Salva na sessão que o usuário logou com sucesso (para o botão de logout funcionar)
+            sessionStorage.setItem('loggedInUser', resultado.nome);
+
+            if (mensagemTexto) {
+                mensagemTexto.style.color = '#28a745';
+                mensagemTexto.style.display = 'block';
+                mensagemTexto.textContent = 'Bem-vindo, ' + resultado.nome + '! Entrando...';
+            }
+            setTimeout(() => {
                 window.location.href = 'home.html';
-            } else {
-                // Login falhou
-                if (loginErrorMessage) {
-                    loginErrorMessage.textContent = 'Usuário ou senha inválidos.';
-                    loginErrorMessage.style.display = 'block';
-                }
-                // Limpa campo senha por segurança (mínima)
-                inputSenhaLogin.value = '';
+            }, 1000);
+        } else {
+            if (mensagemTexto) {
+                mensagemTexto.style.color = '#dc3545';
+                mensagemTexto.style.display = 'block';
+                mensagemTexto.textContent = 'Erro: Usuário ou senha incorretos!';
             }
-        });
+        }
+    } catch (erro) {
+        console.error('Erro:', erro);
+        if (mensagemTexto) {
+            mensagemTexto.style.color = '#dc3545';
+            mensagemTexto.style.display = 'block';
+            mensagemTexto.textContent = 'Erro ao conectar com o servidor.';
+        }
+    }
+}
+
+
+// ==========================================
+// EVENTOS DA PÁGINA (DOM CARREGADO)
+// ==========================================
+
+document.addEventListener('DOMContentLoaded', function () {
+
+    // --- Lógica de Registro ---
+    const formRegistrar = document.getElementById('form-registrar');
+    if (formRegistrar) {
+        formRegistrar.addEventListener('submit', registrarUsuario);
     }
 
-    // --- Lógica de Logout (para todas as páginas protegidas) ---
-    const btnLogout = document.getElementById('btn-logout');
+    // --- Lógica de Login ---
+    const formLogin = document.getElementById('form-login');
+    if (formLogin) {
+        formLogin.addEventListener('submit', fazerLogin);
+    }
 
+    // --- Lógica de Logout ---
+    const btnLogout = document.getElementById('btn-logout');
     if (btnLogout) {
         btnLogout.addEventListener('click', function () {
-            // Remove o indicador de usuário logado da sessionStorage
             sessionStorage.removeItem('loggedInUser');
-            // Redireciona para a página de login
             window.location.href = 'login.html';
         });
-
-        // Opcional: Mostrar o nome do usuário logado em algum lugar
-        const loggedInUser = sessionStorage.getItem('loggedInUser');
-        // Exemplo: adicionar um span no header para mostrar `Bem-vindo, ${loggedInUser}`
     }
 
+    // ===============================================================
+    // TUDO ABAIXO DAQUI É SOBRE TAREFAS, ANOTAÇÕES E FEEDBACK
+    // ===============================================================
 
     // --- Funções Utilitárias para LocalStorage ---
-
-    // Função para buscar tarefas do localStorage
     function getTarefasSalvas() {
         const tarefasJson = localStorage.getItem('minhasTarefas');
-        // Se não houver nada, retorna um array vazio
-        // Se houver, converte o JSON de volta para um array/objeto JavaScript
         return tarefasJson ? JSON.parse(tarefasJson) : [];
     }
 
-    // Função para salvar tarefas no localStorage
     function salvarTarefas(tarefas) {
-        // Converte o array/objeto JavaScript para uma string JSON
         const tarefasJson = JSON.stringify(tarefas);
-        // Salva a string no localStorage com a chave 'minhasTarefas'
         localStorage.setItem('minhasTarefas', tarefasJson);
     }
 
-    // --- Lógica da Página: Adicionar Tarefa (adicionar-tarefa.html) ---
-
+    // --- Lógica da Página: Adicionar Tarefa ---
     const formTarefa = document.getElementById('form-tarefa');
     const inputNomeTarefa = document.getElementById('nome-tarefa');
     const inputPrazoTarefa = document.getElementById('prazo-tarefa');
     const mensagemSucesso = document.getElementById('mensagem-sucesso');
 
-    // Só adiciona o listener se o formulário existir nesta página
     if (formTarefa) {
         formTarefa.addEventListener('submit', function (evento) {
-            evento.preventDefault(); // Impede o recarregamento da página
-
+            evento.preventDefault(); 
             const nome = inputNomeTarefa.value.trim();
             const prazo = inputPrazoTarefa.value;
 
             if (nome) {
-                // Cria um objeto para a nova tarefa com um ID único (timestamp)
                 const novaTarefa = {
-                    id: Date.now(), // ID único baseado no tempo atual
+                    id: Date.now(),
                     nome: nome,
                     prazo: prazo,
-                    concluida: false // Adiciona um status inicial
+                    concluida: false
                 };
 
-                // Busca as tarefas já existentes
                 const tarefas = getTarefasSalvas();
-                // Adiciona a nova tarefa ao array
                 tarefas.push(novaTarefa);
-                // Salva o array atualizado de volta no localStorage
                 salvarTarefas(tarefas);
 
-                // Limpa o formulário
                 inputNomeTarefa.value = '';
                 inputPrazoTarefa.value = '';
 
-                // Mostra mensagem de sucesso
                 if (mensagemSucesso) {
                     mensagemSucesso.textContent = 'Tarefa adicionada com sucesso!';
                     mensagemSucesso.style.display = 'block';
-                    // Esconde a mensagem após alguns segundos
                     setTimeout(() => {
                         mensagemSucesso.style.display = 'none';
-                    }, 3000); // 3 segundos
+                    }, 3000); 
                 }
-
-                inputNomeTarefa.focus(); // Foca no campo nome novamente
-
+                inputNomeTarefa.focus(); 
             } else {
                 alert('Por favor, digite o nome da tarefa.');
             }
         });
     }
 
-    // --- Lógica da Página: Cronograma/Lista de Tarefas (cronograma.html) ---
-
+    // --- Lógica da Página: Cronograma/Lista de Tarefas ---
     const listaTarefasUl = document.getElementById('lista-tarefas');
     const semTarefasMsg = document.getElementById('sem-tarefas-mensagem');
 
-    // Só executa se a lista <ul> existir nesta página
     if (listaTarefasUl) {
-        // Função para criar o elemento HTML (<li>) de uma tarefa
         function criarElementoTarefa(tarefa) {
             const li = document.createElement('li');
-            li.setAttribute('data-id', tarefa.id); // Guarda o ID no elemento
+            li.setAttribute('data-id', tarefa.id); 
             if (tarefa.concluida) {
-                li.classList.add('concluida'); // Adicionar classe se já estiver concluída
+                li.classList.add('concluida'); 
             }
 
             const spanNome = document.createElement('span');
@@ -228,7 +229,6 @@ document.addEventListener('DOMContentLoaded', function () {
             spanPrazo.classList.add('prazo');
             if (tarefa.prazo) {
                 try {
-                    // Formata a data (dd/mm/aaaa) - Cuidado com fuso!
                     const dataObj = new Date(tarefa.prazo + 'T00:00:00');
                     const dia = String(dataObj.getDate()).padStart(2, '0');
                     const mes = String(dataObj.getMonth() + 1).padStart(2, '0');
@@ -236,7 +236,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     spanPrazo.textContent = `Prazo: ${dia}/${mes}/${ano}`;
                 } catch (e) {
                     console.error("Erro ao formatar data:", e);
-                    spanPrazo.textContent = `Prazo: ${tarefa.prazo}`; // Fallback
+                    spanPrazo.textContent = `Prazo: ${tarefa.prazo}`; 
                 }
             } else {
                 spanPrazo.textContent = 'Sem prazo';
@@ -246,27 +246,14 @@ document.addEventListener('DOMContentLoaded', function () {
             btnRemover.textContent = 'Remover';
             btnRemover.classList.add('btn-delete');
             btnRemover.addEventListener('click', function () {
-                // --- Início da Modificação ---
-
-                // 1. Monta a mensagem de confirmação (incluindo o nome da tarefa)
-                const nomeTarefaParaConfirmar = tarefa.nome; // 'tarefa' está acessível aqui
-                const mensagemConfirmacao = `Tem certeza que deseja remover a tarefa "${nomeTarefaParaConfirmar}"?`;
-
-                // 2. Exibe a caixa de diálogo nativa do navegador
-                const confirmado = window.confirm(mensagemConfirmacao);
-
-                // 3. Verifica se o usuário clicou em "OK" (confirmado será true)
+                const confirmado = window.confirm(`Tem certeza que deseja remover a tarefa "${tarefa.nome}"?`);
                 if (confirmado) {
-                    // Se confirmado, executa a lógica de remoção original:
-                    removerTarefa(tarefa.id); // Remove do localStorage
-                    li.remove();              // Remove o elemento <li> da tela
-                    verificarListaVazia();    // Atualiza a mensagem se a lista ficar vazia
+                    removerTarefa(tarefa.id); 
+                    li.remove();              
+                    verificarListaVazia();    
                 }
-                // Se o usuário clicar em "Cancelar" (confirmado será false), nada acontece.
-
             });
 
-            // Adicionar botão/checkbox para marcar como concluída (opcional)
             const checkboxConcluir = document.createElement('input');
             checkboxConcluir.type = 'checkbox';
             checkboxConcluir.checked = tarefa.concluida;
@@ -274,21 +261,17 @@ document.addEventListener('DOMContentLoaded', function () {
                 marcarComoConcluida(tarefa.id, checkboxConcluir.checked);
                 li.classList.toggle('concluida', checkboxConcluir.checked);
             });
-            li.prepend(checkboxConcluir); // Adiciona no início do <li>
+            li.prepend(checkboxConcluir); 
 
             li.appendChild(spanNome);
             li.appendChild(spanPrazo);
             li.appendChild(btnRemover);
 
-            if (tarefa.concluida) {
-                li.classList.add('concluida');
-            }
             return li;
         }
 
-        // Função para carregar e exibir as tarefas do localStorage
         function carregarTarefas() {
-            listaTarefasUl.innerHTML = ''; // Limpa a lista atual antes de recarregar
+            listaTarefasUl.innerHTML = ''; 
             const tarefas = getTarefasSalvas();
 
             if (tarefas.length === 0) {
@@ -299,19 +282,16 @@ document.addEventListener('DOMContentLoaded', function () {
                     const elementoTarefa = criarElementoTarefa(tarefa);
                     listaTarefasUl.appendChild(elementoTarefa);
                 });
-                verificarPrazos(); // Aplica estilo de prazo após carregar
+                verificarPrazos(); 
             }
         }
 
-        // Função para remover uma tarefa pelo ID
         function removerTarefa(id) {
             let tarefas = getTarefasSalvas();
-            // Filtra o array, mantendo apenas as tarefas com ID diferente
             tarefas = tarefas.filter(tarefa => tarefa.id !== id);
-            salvarTarefas(tarefas); // Salva o array filtrado
+            salvarTarefas(tarefas); 
         }
 
-        // Função para marcar como concluída (requer CSS para .concluida)
         function marcarComoConcluida(id, estado) {
             let tarefas = getTarefasSalvas();
             tarefas = tarefas.map(tarefa => {
@@ -323,7 +303,6 @@ document.addEventListener('DOMContentLoaded', function () {
             salvarTarefas(tarefas);
         }
 
-        // Função para verificar se a lista está vazia e mostrar mensagem
         function verificarListaVazia() {
             const totalTarefas = listaTarefasUl.children.length;
             if (semTarefasMsg) {
@@ -331,26 +310,23 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
-        // Função de verificação de prazos (adaptada)
         function verificarPrazos() {
             const hoje = new Date();
             hoje.setHours(0, 0, 0, 0);
 
             const itensTarefa = listaTarefasUl.querySelectorAll('li');
             itensTarefa.forEach(item => {
-                const id = parseInt(item.getAttribute('data-id')); // Pega o ID
+                const id = parseInt(item.getAttribute('data-id')); 
                 const tarefas = getTarefasSalvas();
-                const tarefa = tarefas.find(t => t.id === id); // Encontra a tarefa original
+                const tarefa = tarefas.find(t => t.id === id); 
 
-                // Limpa classes e texto adicional antes de reavaliar
                 item.classList.remove('prazo-proximo', 'prazo-vencido');
                 const spanPrazo = item.querySelector('.prazo');
                 if (spanPrazo && spanPrazo.textContent.includes(' (')) {
                     spanPrazo.textContent = spanPrazo.textContent.substring(0, spanPrazo.textContent.indexOf(' ('));
                 }
 
-
-                if (tarefa && tarefa.prazo && !tarefa.concluida) { // Só verifica se tem prazo e não está concluída
+                if (tarefa && tarefa.prazo && !tarefa.concluida) { 
                     try {
                         const dataPrazo = new Date(tarefa.prazo + 'T00:00:00');
                         dataPrazo.setHours(0, 0, 0, 0);
@@ -366,90 +342,71 @@ document.addEventListener('DOMContentLoaded', function () {
                             if (spanPrazo) spanPrazo.textContent += ` (Faltam ${diffDays} dias)`;
                         }
                     } catch (e) {
-                        console.error("Erro ao verificar prazo da tarefa ID:", id, e);
+                        console.error("Erro ao verificar prazo:", e);
                     }
                 }
             });
         }
 
-
-        // Carrega as tarefas quando a página 'cronograma.html' é carregada
         carregarTarefas();
     }
 
-
-    // --- Lógica da Página: Anotações (anotacoes.html) ---
-
-    const NOTAS_STORAGE_KEY = 'minhasAnotacoesArray'; // Nova chave para o array de notas
+    // --- Lógica da Página: Anotações ---
+    const NOTAS_STORAGE_KEY = 'minhasAnotacoesArray'; 
     const textAreaNovaAnotacao = document.getElementById('texto-anotacoes');
     const btnAddAnotacao = document.getElementById('btn-add-anotacao');
     const listaAnotacoesSalvasUl = document.getElementById('lista-anotacoes-salvas');
     const mensagemAnotacaoAdicionada = document.getElementById('anotacao-add-message');
     const mensagemSemAnotacoes = document.getElementById('sem-anotacoes-mensagem');
 
-    // --- Funções Utilitárias para Anotações (Array) ---
-
     function getAnotacoesSalvas() {
         const notasJson = localStorage.getItem(NOTAS_STORAGE_KEY);
         try {
-            // Tenta parsear, se falhar ou for nulo, retorna array vazio
             return notasJson ? JSON.parse(notasJson) : [];
         } catch (e) {
-            console.error("Erro ao parsear anotações do localStorage:", e);
             return [];
         }
     }
 
     function salvarAnotacoes(anotacoesArray) {
-        // Garante que sempre salva um array
-        if (!Array.isArray(anotacoesArray)) {
-            console.error("Tentativa de salvar algo que não é um array em anotações.");
-            return;
-        }
+        if (!Array.isArray(anotacoesArray)) return;
         localStorage.setItem(NOTAS_STORAGE_KEY, JSON.stringify(anotacoesArray));
     }
 
-    // --- Funções de Manipulação do DOM para Anotações ---
-
     function criarElementoAnotacao(anotacao) {
         const li = document.createElement('li');
-        li.setAttribute('data-id', anotacao.id); // Guarda o ID no elemento
+        li.setAttribute('data-id', anotacao.id); 
 
-        // Elemento para o texto da anotação (usando <p> ou <span>)
-        const textoEl = document.createElement('p'); // Usar <p> para semântica
+        const textoEl = document.createElement('p'); 
         textoEl.textContent = anotacao.texto;
-        textoEl.classList.add('anotacao-texto'); // Classe para aplicar white-space: pre-wrap
+        textoEl.classList.add('anotacao-texto'); 
 
-        // Container para ações (botão de remover)
         const actionsEl = document.createElement('div');
         actionsEl.classList.add('anotacao-actions');
 
-        // Botão de remover
         const btnRemover = document.createElement('button');
         btnRemover.textContent = 'Apagar';
-        btnRemover.classList.add('btn-delete-nota'); // Classe específica
+        btnRemover.classList.add('btn-delete-nota'); 
         btnRemover.addEventListener('click', function () {
-            // Confirmação antes de apagar
             const confirmado = window.confirm(`Tem certeza que deseja apagar esta anotação?`);
             if (confirmado) {
-                removerAnotacao(anotacao.id); // Remove do localStorage
-                li.remove();                  // Remove o <li> da tela
-                verificarListaAnotacoesVazia(); // Atualiza mensagem se necessário
+                removerAnotacao(anotacao.id); 
+                li.remove();                  
+                verificarListaAnotacoesVazia(); 
             }
         });
 
-        actionsEl.appendChild(btnRemover); // Adiciona botão ao container de ações
-        li.appendChild(textoEl);         // Adiciona texto ao <li>
-        li.appendChild(actionsEl);       // Adiciona ações (botão) ao <li>
+        actionsEl.appendChild(btnRemover); 
+        li.appendChild(textoEl);         
+        li.appendChild(actionsEl);       
 
         return li;
     }
 
-    // Função para carregar e exibir todas as anotações salvas
     function carregarAnotacoesSalvas() {
-        if (!listaAnotacoesSalvasUl) return; // Sai se a lista não existir na página
+        if (!listaAnotacoesSalvasUl) return; 
 
-        listaAnotacoesSalvasUl.innerHTML = ''; // Limpa a lista atual
+        listaAnotacoesSalvasUl.innerHTML = ''; 
         const anotacoes = getAnotacoesSalvas();
 
         if (anotacoes.length > 0) {
@@ -458,57 +415,43 @@ document.addEventListener('DOMContentLoaded', function () {
                 listaAnotacoesSalvasUl.appendChild(elementoLi);
             });
         }
-        verificarListaAnotacoesVazia(); // Mostra/esconde mensagem de lista vazia
+        verificarListaAnotacoesVazia(); 
     }
 
-    // Função para verificar e mostrar/ocultar mensagem de lista vazia
     function verificarListaAnotacoesVazia() {
         if (!mensagemSemAnotacoes || !listaAnotacoesSalvasUl) return;
         const totalAnotacoes = listaAnotacoesSalvasUl.children.length;
         mensagemSemAnotacoes.style.display = totalAnotacoes === 0 ? 'block' : 'none';
     }
 
-    // Função para remover anotação do localStorage pelo ID
     function removerAnotacao(id) {
         let anotacoes = getAnotacoesSalvas();
         anotacoes = anotacoes.filter(anotacao => anotacao.id !== id);
         salvarAnotacoes(anotacoes);
     }
 
-
-    // --- Lógica Principal da Página de Anotações ---
-
-    // Só executa se os elementos principais da página de anotações existirem
     if (textAreaNovaAnotacao && btnAddAnotacao && listaAnotacoesSalvasUl) {
-
-        // 1. Carrega as anotações existentes ao abrir a página
         carregarAnotacoesSalvas();
 
-        // 2. Listener para o botão "Adicionar Anotação"
         btnAddAnotacao.addEventListener('click', function () {
             const texto = textAreaNovaAnotacao.value.trim();
 
             if (texto) {
-                // Cria o objeto da nova anotação
                 const novaAnotacao = {
-                    id: Date.now(), // ID único baseado no timestamp
+                    id: Date.now(), 
                     texto: texto
                 };
 
-                // Adiciona ao array e salva no localStorage
                 const anotacoesAtuais = getAnotacoesSalvas();
                 anotacoesAtuais.push(novaAnotacao);
                 salvarAnotacoes(anotacoesAtuais);
 
-                // Adiciona a nova anotação DIRETAMENTE à lista na tela (mais eficiente que recarregar tudo)
                 const novoElementoLi = criarElementoAnotacao(novaAnotacao);
                 listaAnotacoesSalvasUl.appendChild(novoElementoLi);
-                verificarListaAnotacoesVazia(); // Esconde a mensagem de lista vazia, se aplicável
+                verificarListaAnotacoesVazia(); 
 
-                // Limpa o textarea
                 textAreaNovaAnotacao.value = '';
 
-                // Feedback visual (opcional)
                 if (mensagemAnotacaoAdicionada) {
                     mensagemAnotacaoAdicionada.textContent = 'Anotação adicionada!';
                     mensagemAnotacaoAdicionada.style.display = 'block';
@@ -516,33 +459,27 @@ document.addEventListener('DOMContentLoaded', function () {
                         mensagemAnotacaoAdicionada.style.display = 'none';
                     }, 2500);
                 }
-
-                textAreaNovaAnotacao.focus(); // Foca no textarea novamente
-
+                textAreaNovaAnotacao.focus(); 
             } else {
                 alert('Por favor, digite algo na anotação.');
             }
         });
     }
 
+    // --- Lógica da Página: Feedback ---
     const formFeedback = document.getElementById('form-feedback');
     const mensagemSucessoFeedback = document.getElementById('mensagem-sucesso-feedback');
 
     if (formFeedback) {
         formFeedback.addEventListener('submit', function (evento) {
-            evento.preventDefault(); // Impede o recarregamento da página
-            console.log('Feedback enviado!'); // Simula envio de feedback
-            // Mostra mensagem de sucesso
+            evento.preventDefault(); 
+            console.log('Feedback enviado!'); 
             mensagemSucessoFeedback.textContent = 'Feedback enviado com sucesso! Você será redirecionado.';
             mensagemSucessoFeedback.style.display = 'block';
-            // Esconde a mensagem após alguns segundos
             setTimeout(() => {
                 mensagemSucessoFeedback.style.display = 'none';
                 window.location.href = 'home.html';
-            }, 3000); // 3 segundos
-
+            }, 3000); 
         });
     }
-
-
-}); // Fim do 'DOMContentLoaded'
+});

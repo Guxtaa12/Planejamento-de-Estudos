@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,27 +11,34 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 </head>
+
 <body class="body-auth">
 
     <div class="auth-container">
         <div class="card auth-card">
-             <h1>Plataforma de Estudos</h1>
+            <h1>Plataforma de Estudos</h1>
             <h2>Registrar Nova Conta</h2>
             <form id="form-registrar" class="form-auth">
                 <div class="input-group">
-                    <label for="registrar-usuario">Usuário (ou Email):</label>
-                    <input type="text" id="registrar-usuario" required>
+                    <label for="registrar-usuario">Usuário:</label>
+                    <input type="text" id="registrar-nome" required>
+                </div>
+                <div class="input-group">
+                    <label for="registrar-email">E-mail:</label>
+                    <input type="email" id="registrar-email" required>
                 </div>
                 <div class="input-group">
                     <label for="registrar-senha">Senha:</label>
                     <input type="password" id="registrar-senha" required>
                 </div>
-                 <button type="submit" class="btn-auth"> Registrar </button>
-                <p id="register-message" class="mensagem"></p> </form>
+                <button type="submit" class="btn-auth"> Registrar </button>
+                <p id="register-message" class="mensagem"></p>
+            </form>
             <p class="auth-switch">Já tem uma conta? <a href="login.html">Faça login aqui</a></p>
         </div>
     </div>
 
     <script src="script.js"></script>
 </body>
+
 </html>
