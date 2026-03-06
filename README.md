@@ -1,35 +1,37 @@
-# Planejamento de Estudos
+# 📚 Plataforma de Planejamento de Estudos
 
-## Descrição
+Um sistema full-stack interativo focado na organização pessoal, gerenciamento de tarefas e anotações rápidas. Desenvolvido para ajudar estudantes a manterem o foco e a produtividade através de uma interface moderna e um backend robusto.
 
-Este projeto é um planejador de estudos projetado para ajudar os usuários a organizar seu tempo e materiais de estudo de forma eficiente. Ele permite que os usuários criem um cronograma de estudos, definam metas e acompanhem seu progresso.
+## ✨ Funcionalidades
 
-## Funcionalidades
+- **🔐 Autenticação de Usuários:** Sistema de registro e login com validação de dados e controle de sessão (`sessionStorage`).
+- **✅ Gestão de Tarefas (CRUD):** Adicione, liste, conclua ou remova tarefas. As tarefas são vinculadas exclusivamente ao usuário logado, garantindo privacidade.
+- **📌 Mural de Post-its Interativo:** Uma tela de anotações no formato "Drag and Drop" (arrastar e soltar). As coordenadas (X e Y) de cada post-it são salvas em tempo real no banco de dados, garantindo que suas notas fiquem exatamente onde você as deixou, mesmo após deslogar.
+- **🚪 Logout Seguro:** Encerramento de sessão com limpeza de cache e confirmação de segurança.
 
-  * Crie e gerencie um cronograma de estudos personalizado.
-  * Defina metas de estudo e acompanhe seu progresso.
-  * Adicione e organize materiais de estudo, como notas, livros e links.
-  * Receba lembretes para as próximas sessões de estudo.
-  * Visualize seu progresso com estatísticas e gráficos.
+## 🛠️ Tecnologias Utilizadas
 
-## Tecnologias Utilizadas
+**Front-end:**
+- HTML5
+- CSS3 (Estilização responsiva e posicionamento absoluto para elementos interativos)
+- JavaScript Vanilla (Manipulação do DOM, Eventos de Drag & Drop, API Fetch)
 
-  * [Adicione as tecnologias que você usou, por exemplo, HTML, CSS, JavaScript, Python, etc.]
+**Back-end:**
+- Python 3
+- FastAPI (Criação das rotas RESTful)
+- Uvicorn (Servidor ASGI)
+- Pydantic (Validação de dados)
 
-## Como Usar
+**Banco de Dados:**
+- SQLite (Banco de dados relacional leve e integrado)
 
-1.  Clone o repositório: `git clone https://github.com/Guxtaa12/Planejamento-de-Estudos.git`
-2.  [Adicione as instruções de instalação e configuração aqui.]
-3.  [Adicione as instruções de como executar o projeto aqui.]
+## 🚀 Como rodar este projeto na sua máquina
 
-## Como Contribuir
+### Pré-requisitos
+Certifique-se de ter o [Python](https://www.python.org/downloads/) instalado na sua máquina.
 
-1.  Faça um fork do projeto.
-2.  Crie uma nova branch para sua feature: `git checkout -b feature/nova-feature`
-3.  Faça o commit de suas alterações: `git commit -m 'Adiciona nova feature'`
-4.  Faça o push para a branch: `git push origin feature/nova-feature`
-5.  Abra um pull request.
+### Passo a passo
 
-## Licença
-
-Este projeto está licenciado sob a Licença MIT. Consulte o arquivo [LICENSE](https://www.google.com/search?q=LICENSE) para obter mais detalhes.
+1. **Clone o repositório:**
+   ```bash
+   git clone [https://github.com/Guxtaa12/Planejamento-de-Estudos.git](https://github.com/Guxtaa12/Planejamento-de-Estudos.git)
