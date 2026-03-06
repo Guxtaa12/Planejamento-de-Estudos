@@ -100,6 +100,7 @@ async function fazerLogin(event) {
         if (resposta.ok) {
             // Salva na sessão que o usuário logou com sucesso (para o botão de logout funcionar)
             sessionStorage.setItem('loggedInUser', resultado.nome);
+            sessionStorage.setItem('userId', resultado.id);
 
             if (mensagemTexto) {
                 mensagemTexto.style.color = '#28a745';
@@ -121,7 +122,7 @@ async function fazerLogin(event) {
         if (mensagemTexto) {
             mensagemTexto.style.color = '#dc3545';
             mensagemTexto.style.display = 'block';
-            mensagemTexto.textContent = 'Erro ao conectar com o servidor.';
+            mensagemTexto.textContent = 'Erro: falha na conexão.';
         }
     }
 }
@@ -145,29 +146,33 @@ document.addEventListener('DOMContentLoaded', function () {
         formLogin.addEventListener('submit', fazerLogin);
     }
 
-    // --- Lógica de Logout ---
+   // --- Lógica de Logout ---
     const btnLogout = document.getElementById('btn-logout');
     if (btnLogout) {
         btnLogout.addEventListener('click', function () {
-            sessionStorage.removeItem('loggedInUser');
-            window.location.href = 'login.html';
+            // Confirmação rápida pra evitar clique sem querer
+            const confirmar = window.confirm("Tem certeza que deseja sair da sua conta?");
+            
+            if (confirmar) {
+                // Limpa o ID e o Nome que estavam salvos no navegador
+                sessionStorage.removeItem('userId');
+                sessionStorage.removeItem('loggedInUser');
+                
+                // Redireciona para a página de login
+                window.location.href = 'login.html';
+            }
         });
     }
-
     // ===============================================================
     // TUDO ABAIXO DAQUI É SOBRE TAREFAS, ANOTAÇÕES E FEEDBACK
     // ===============================================================
 
-    // --- Funções Utilitárias para LocalStorage ---
-    function getTarefasSalvas() {
-        const tarefasJson = localStorage.getItem('minhasTarefas');
-        return tarefasJson ? JSON.parse(tarefasJson) : [];
-    }
+    // ===============================================================
+    // NOVA LÓGICA DE TAREFAS (CONECTADA AO BANCO DE DADOS)
+    // ===============================================================
 
-    function salvarTarefas(tarefas) {
-        const tarefasJson = JSON.stringify(tarefas);
-        localStorage.setItem('minhasTarefas', tarefasJson);
-    }
+    // Pega o ID do usuário que fez o login
+    const userId = sessionStorage.getItem('userId');
 
     // --- Lógica da Página: Adicionar Tarefa ---
     const formTarefa = document.getElementById('form-tarefa');
@@ -176,34 +181,52 @@ document.addEventListener('DOMContentLoaded', function () {
     const mensagemSucesso = document.getElementById('mensagem-sucesso');
 
     if (formTarefa) {
-        formTarefa.addEventListener('submit', function (evento) {
+        formTarefa.addEventListener('submit', async function (evento) {
             evento.preventDefault(); 
             const nome = inputNomeTarefa.value.trim();
             const prazo = inputPrazoTarefa.value;
 
+            // Bloqueio de segurança: se não tem ID, não deixa criar tarefa
+            if (!userId) {
+                alert('Você precisa estar logado para adicionar tarefas!');
+                window.location.href = 'login.html';
+                return;
+            }
+
             if (nome) {
+                // Monta a tarefa com o ID do usuário para o Python saber de quem é
                 const novaTarefa = {
-                    id: Date.now(),
+                    usuario_id: parseInt(userId),
                     nome: nome,
-                    prazo: prazo,
+                    prazo: prazo || "", 
                     concluida: false
                 };
 
-                const tarefas = getTarefasSalvas();
-                tarefas.push(novaTarefa);
-                salvarTarefas(tarefas);
+                try {
+                    // Manda para a nossa nova rota no Python
+                    const resposta = await fetch('http://127.0.0.1:8000/tarefas', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(novaTarefa)
+                    });
 
-                inputNomeTarefa.value = '';
-                inputPrazoTarefa.value = '';
+                    if (resposta.ok) {
+                        inputNomeTarefa.value = '';
+                        inputPrazoTarefa.value = '';
 
-                if (mensagemSucesso) {
-                    mensagemSucesso.textContent = 'Tarefa adicionada com sucesso!';
-                    mensagemSucesso.style.display = 'block';
-                    setTimeout(() => {
-                        mensagemSucesso.style.display = 'none';
-                    }, 3000); 
+                        if (mensagemSucesso) {
+                            mensagemSucesso.textContent = 'Tarefa salva no banco de dados!';
+                            mensagemSucesso.style.display = 'block';
+                            setTimeout(() => {
+                                mensagemSucesso.style.display = 'none';
+                            }, 3000); 
+                        }
+                        inputNomeTarefa.focus(); 
+                    }
+                } catch (erro) {
+                    console.error('Erro ao salvar tarefa:', erro);
+                    alert('Erro: falha na conexão.');
                 }
-                inputNomeTarefa.focus(); 
             } else {
                 alert('Por favor, digite o nome da tarefa.');
             }
@@ -215,6 +238,35 @@ document.addEventListener('DOMContentLoaded', function () {
     const semTarefasMsg = document.getElementById('sem-tarefas-mensagem');
 
     if (listaTarefasUl) {
+        
+        async function carregarTarefasDoBanco() {
+            if (!userId) return; // Se não estiver logado, nem tenta buscar
+
+            listaTarefasUl.innerHTML = '<li style="text-align: center;">Carregando suas tarefas...</li>'; 
+
+            try {
+                // Busca as tarefas específicas desse usuário
+                const resposta = await fetch(`http://127.0.0.1:8000/tarefas/${userId}`);
+                const tarefas = await resposta.json();
+
+                listaTarefasUl.innerHTML = ''; 
+
+                if (tarefas.length === 0) {
+                    if (semTarefasMsg) semTarefasMsg.style.display = 'block';
+                } else {
+                    if (semTarefasMsg) semTarefasMsg.style.display = 'none';
+                    tarefas.forEach(tarefa => {
+                        const elementoTarefa = criarElementoTarefa(tarefa);
+                        listaTarefasUl.appendChild(elementoTarefa);
+                    });
+                    verificarPrazosBanco(tarefas); 
+                }
+            } catch (erro) {
+                console.error('Erro ao buscar tarefas:', erro);
+                listaTarefasUl.innerHTML = '<li style="color: #dc3545; text-align: center;">Erro ao carregar as tarefas.</li>';
+            }
+        }
+
         function criarElementoTarefa(tarefa) {
             const li = document.createElement('li');
             li.setAttribute('data-id', tarefa.id); 
@@ -235,7 +287,6 @@ document.addEventListener('DOMContentLoaded', function () {
                     const ano = dataObj.getFullYear();
                     spanPrazo.textContent = `Prazo: ${dia}/${mes}/${ano}`;
                 } catch (e) {
-                    console.error("Erro ao formatar data:", e);
                     spanPrazo.textContent = `Prazo: ${tarefa.prazo}`; 
                 }
             } else {
@@ -245,62 +296,44 @@ document.addEventListener('DOMContentLoaded', function () {
             const btnRemover = document.createElement('button');
             btnRemover.textContent = 'Remover';
             btnRemover.classList.add('btn-delete');
-            btnRemover.addEventListener('click', function () {
+            btnRemover.addEventListener('click', async function () {
                 const confirmado = window.confirm(`Tem certeza que deseja remover a tarefa "${tarefa.nome}"?`);
                 if (confirmado) {
-                    removerTarefa(tarefa.id); 
-                    li.remove();              
-                    verificarListaVazia();    
+                    try {
+                        // Avisa o Python para deletar
+                        await fetch(`http://127.0.0.1:8000/tarefas/${tarefa.id}`, { method: 'DELETE' });
+                        li.remove();              
+                        verificarListaVazia(); 
+                    } catch (erro) {
+                        alert("Erro ao apagar tarefa no banco de dados.");
+                    }   
                 }
             });
 
             const checkboxConcluir = document.createElement('input');
             checkboxConcluir.type = 'checkbox';
             checkboxConcluir.checked = tarefa.concluida;
-            checkboxConcluir.addEventListener('change', function () {
-                marcarComoConcluida(tarefa.id, checkboxConcluir.checked);
-                li.classList.toggle('concluida', checkboxConcluir.checked);
+            checkboxConcluir.addEventListener('change', async function () {
+                try {
+                    // Avisa o Python que o status mudou (Put)
+                    await fetch(`http://127.0.0.1:8000/tarefas/${tarefa.id}/status`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ concluida: checkboxConcluir.checked })
+                    });
+                    li.classList.toggle('concluida', checkboxConcluir.checked);
+                } catch (erro) {
+                    alert("Erro ao atualizar o status da tarefa.");
+                    checkboxConcluir.checked = !checkboxConcluir.checked; // Reverte o botão se der erro
+                }
             });
+            
             li.prepend(checkboxConcluir); 
-
             li.appendChild(spanNome);
             li.appendChild(spanPrazo);
             li.appendChild(btnRemover);
 
             return li;
-        }
-
-        function carregarTarefas() {
-            listaTarefasUl.innerHTML = ''; 
-            const tarefas = getTarefasSalvas();
-
-            if (tarefas.length === 0) {
-                if (semTarefasMsg) semTarefasMsg.style.display = 'block';
-            } else {
-                if (semTarefasMsg) semTarefasMsg.style.display = 'none';
-                tarefas.forEach(tarefa => {
-                    const elementoTarefa = criarElementoTarefa(tarefa);
-                    listaTarefasUl.appendChild(elementoTarefa);
-                });
-                verificarPrazos(); 
-            }
-        }
-
-        function removerTarefa(id) {
-            let tarefas = getTarefasSalvas();
-            tarefas = tarefas.filter(tarefa => tarefa.id !== id);
-            salvarTarefas(tarefas); 
-        }
-
-        function marcarComoConcluida(id, estado) {
-            let tarefas = getTarefasSalvas();
-            tarefas = tarefas.map(tarefa => {
-                if (tarefa.id === id) {
-                    return { ...tarefa, concluida: estado };
-                }
-                return tarefa;
-            });
-            salvarTarefas(tarefas);
         }
 
         function verificarListaVazia() {
@@ -310,14 +343,13 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
-        function verificarPrazos() {
+        function verificarPrazosBanco(tarefas) {
             const hoje = new Date();
             hoje.setHours(0, 0, 0, 0);
 
             const itensTarefa = listaTarefasUl.querySelectorAll('li');
             itensTarefa.forEach(item => {
                 const id = parseInt(item.getAttribute('data-id')); 
-                const tarefas = getTarefasSalvas();
                 const tarefa = tarefas.find(t => t.id === id); 
 
                 item.classList.remove('prazo-proximo', 'prazo-vencido');
@@ -347,124 +379,150 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
         }
-
-        carregarTarefas();
+        carregarTarefasDoBanco();
     }
 
-    // --- Lógica da Página: Anotações ---
-    const NOTAS_STORAGE_KEY = 'minhasAnotacoesArray'; 
-    const textAreaNovaAnotacao = document.getElementById('texto-anotacoes');
-    const btnAddAnotacao = document.getElementById('btn-add-anotacao');
-    const listaAnotacoesSalvasUl = document.getElementById('lista-anotacoes-salvas');
-    const mensagemAnotacaoAdicionada = document.getElementById('anotacao-add-message');
-    const mensagemSemAnotacoes = document.getElementById('sem-anotacoes-mensagem');
+    // ===============================================================
+    // LÓGICA DE ANOTAÇÕES (POST-ITS ARRASTÁVEIS NO BANCO DE DADOS)
+    // ===============================================================
 
-    function getAnotacoesSalvas() {
-        const notasJson = localStorage.getItem(NOTAS_STORAGE_KEY);
-        try {
-            return notasJson ? JSON.parse(notasJson) : [];
-        } catch (e) {
-            return [];
-        }
-    }
+    const quadroAnotacoes = document.getElementById('quadro-anotacoes');
+    const formAnotacao = document.getElementById('form-anotacao');
+    const inputTextoAnotacao = document.getElementById('texto-anotacao');
 
-    function salvarAnotacoes(anotacoesArray) {
-        if (!Array.isArray(anotacoesArray)) return;
-        localStorage.setItem(NOTAS_STORAGE_KEY, JSON.stringify(anotacoesArray));
-    }
+    // Variáveis para controlar o movimento do mouse
+    let notaSendoArrastada = null;
+    let offsetX = 0;
+    let offsetY = 0;
 
-    function criarElementoAnotacao(anotacao) {
-        const li = document.createElement('li');
-        li.setAttribute('data-id', anotacao.id); 
+    if (quadroAnotacoes) {
 
-        const textoEl = document.createElement('p'); 
-        textoEl.textContent = anotacao.texto;
-        textoEl.classList.add('anotacao-texto'); 
-
-        const actionsEl = document.createElement('div');
-        actionsEl.classList.add('anotacao-actions');
-
-        const btnRemover = document.createElement('button');
-        btnRemover.textContent = 'Apagar';
-        btnRemover.classList.add('btn-delete-nota'); 
-        btnRemover.addEventListener('click', function () {
-            const confirmado = window.confirm(`Tem certeza que deseja apagar esta anotação?`);
-            if (confirmado) {
-                removerAnotacao(anotacao.id); 
-                li.remove();                  
-                verificarListaAnotacoesVazia(); 
+        // 1. Busca as notas do banco e coloca na tela
+        async function carregarAnotacoesDoBanco() {
+            if (!userId) return;
+            quadroAnotacoes.innerHTML = ''; 
+            
+            try {
+                const resposta = await fetch(`http://127.0.0.1:8000/anotacoes/${userId}`);
+                const notas = await resposta.json();
+                notas.forEach(nota => criarPostItVisual(nota));
+            } catch (erro) {
+                console.error('Erro ao buscar notas:', erro);
             }
-        });
+        }
 
-        actionsEl.appendChild(btnRemover); 
-        li.appendChild(textoEl);         
-        li.appendChild(actionsEl);       
+        // 2. Cria o Post-it visualmente
+        function criarPostItVisual(nota) {
+            const div = document.createElement('div');
+            div.className = 'post-it';
+            div.setAttribute('data-id', nota.id);
+            
+            // Define a posição EXATA que veio do banco de dados!
+            div.style.left = nota.pos_x + 'px';
+            div.style.top = nota.pos_y + 'px';
 
-        return li;
-    }
+            const texto = document.createElement('p');
+            texto.textContent = nota.texto;
+            texto.style.marginTop = '10px';
 
-    function carregarAnotacoesSalvas() {
-        if (!listaAnotacoesSalvasUl) return; 
+            const btnApagar = document.createElement('button');
+            btnApagar.className = 'btn-apagar-nota';
+            btnApagar.textContent = 'X';
+            btnApagar.onclick = async function() {
+                if(confirm('Apagar este Post-it?')) {
+                    await fetch(`http://127.0.0.1:8000/anotacoes/${nota.id}`, { method: 'DELETE' });
+                    div.remove();
+                }
+            };
 
-        listaAnotacoesSalvasUl.innerHTML = ''; 
-        const anotacoes = getAnotacoesSalvas();
+            div.appendChild(btnApagar);
+            div.appendChild(texto);
+            quadroAnotacoes.appendChild(div);
 
-        if (anotacoes.length > 0) {
-            anotacoes.forEach(anotacao => {
-                const elementoLi = criarElementoAnotacao(anotacao);
-                listaAnotacoesSalvasUl.appendChild(elementoLi);
+            // --- EVENTO: Clicar e Segurar (Mouse Down) ---
+            div.addEventListener('mousedown', function(e) {
+                if (e.target.tagName === 'BUTTON') return; // Se clicou no 'X', não arrasta
+                
+                notaSendoArrastada = div;
+                // Calcula onde você clicou dentro da nota
+                offsetX = e.clientX - div.getBoundingClientRect().left;
+                offsetY = e.clientY - div.getBoundingClientRect().top;
+                div.style.zIndex = 1000; // Joga a nota pra frente das outras
             });
         }
-        verificarListaAnotacoesVazia(); 
-    }
 
-    function verificarListaAnotacoesVazia() {
-        if (!mensagemSemAnotacoes || !listaAnotacoesSalvasUl) return;
-        const totalAnotacoes = listaAnotacoesSalvasUl.children.length;
-        mensagemSemAnotacoes.style.display = totalAnotacoes === 0 ? 'block' : 'none';
-    }
+        // --- EVENTO: Mover o Mouse pela Tela (Mouse Move) ---
+        document.addEventListener('mousemove', function(e) {
+            if (notaSendoArrastada) {
+                const quadroRect = quadroAnotacoes.getBoundingClientRect();
+                
+                // Calcula a nova posição baseada no movimento do mouse
+                let novaPosX = e.clientX - quadroRect.left - offsetX;
+                let novaPosY = e.clientY - quadroRect.top - offsetY;
 
-    function removerAnotacao(id) {
-        let anotacoes = getAnotacoesSalvas();
-        anotacoes = anotacoes.filter(anotacao => anotacao.id !== id);
-        salvarAnotacoes(anotacoes);
-    }
-
-    if (textAreaNovaAnotacao && btnAddAnotacao && listaAnotacoesSalvasUl) {
-        carregarAnotacoesSalvas();
-
-        btnAddAnotacao.addEventListener('click', function () {
-            const texto = textAreaNovaAnotacao.value.trim();
-
-            if (texto) {
-                const novaAnotacao = {
-                    id: Date.now(), 
-                    texto: texto
-                };
-
-                const anotacoesAtuais = getAnotacoesSalvas();
-                anotacoesAtuais.push(novaAnotacao);
-                salvarAnotacoes(anotacoesAtuais);
-
-                const novoElementoLi = criarElementoAnotacao(novaAnotacao);
-                listaAnotacoesSalvasUl.appendChild(novoElementoLi);
-                verificarListaAnotacoesVazia(); 
-
-                textAreaNovaAnotacao.value = '';
-
-                if (mensagemAnotacaoAdicionada) {
-                    mensagemAnotacaoAdicionada.textContent = 'Anotação adicionada!';
-                    mensagemAnotacaoAdicionada.style.display = 'block';
-                    setTimeout(() => {
-                        mensagemAnotacaoAdicionada.style.display = 'none';
-                    }, 2500);
-                }
-                textAreaNovaAnotacao.focus(); 
-            } else {
-                alert('Por favor, digite algo na anotação.');
+                notaSendoArrastada.style.left = novaPosX + 'px';
+                notaSendoArrastada.style.top = novaPosY + 'px';
             }
         });
+
+        // --- EVENTO: Soltar o Botão do Mouse (Mouse Up) ---
+        document.addEventListener('mouseup', async function() {
+            if (notaSendoArrastada) {
+                notaSendoArrastada.style.zIndex = 1; // Volta ao normal
+                
+                const idNota = notaSendoArrastada.getAttribute('data-id');
+                const posXFinal = parseInt(notaSendoArrastada.style.left) || 0;
+                const posYFinal = parseInt(notaSendoArrastada.style.top) || 0;
+
+                try {
+                    // Manda a posição final para o Python salvar no banco
+                    await fetch(`http://127.0.0.1:8000/anotacoes/${idNota}/posicao`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ pos_x: posXFinal, pos_y: posYFinal })
+                    });
+                } catch (erro) {
+                    console.error('Erro ao salvar posição:', erro);
+                }
+
+                notaSendoArrastada = null; // Soltou a nota
+            }
+        });
+
+        // 3. Adicionar nova nota
+        if (formAnotacao) {
+            formAnotacao.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const texto = inputTextoAnotacao.value.trim();
+                if (!texto || !userId) return;
+
+                const novaNota = {
+                    usuario_id: parseInt(userId),
+                    texto: texto,
+                    pos_x: 50, // Posição inicial padrão quando nasce
+                    pos_y: 50  // Posição inicial padrão quando nasce
+                };
+
+                try {
+                    const resposta = await fetch('http://127.0.0.1:8000/anotacoes', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(novaNota)
+                    });
+                    if (resposta.ok) {
+                        inputTextoAnotacao.value = '';
+                        carregarAnotacoesDoBanco(); // Atualiza a tela
+                    }
+                } catch (erro) {
+                    console.error('Erro ao criar anotação:', erro);
+                }
+            });
+        }
+
+        // Puxa as notas assim que abrir a página
+        carregarAnotacoesDoBanco();
     }
+
 
     // --- Lógica da Página: Feedback ---
     const formFeedback = document.getElementById('form-feedback');

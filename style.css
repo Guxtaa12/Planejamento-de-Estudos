@@ -839,4 +839,62 @@ textarea:focus {
     box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
     /* Sombra ao focar, similar ao Bootstrap */
 }
-/* Estilo para o botão de enviar */
+/* O quadro agora é fixo, invisível e do tamanho da tela inteira */
+#quadro-anotacoes {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 100; /* Fica flutuando por cima do site inteiro */
+    pointer-events: none; /* A mágica: deixa você clicar nos botões que estão atrás do quadro! */
+}
+
+/* O Post-it continua igual, só adicionamos o pointer-events: auto */
+.post-it {
+    position: absolute; 
+    
+    /* === A MÁGICA DO TAMANHO ADAPTÁVEL === */
+    width: fit-content;    /* A largura abraça o texto */
+    min-width: 120px;      /* Mas nunca fica fininho demais se você digitar só "Ok" */
+    max-width: 300px;      /* E para de crescer pros lados se o texto for gigante */
+    height: fit-content;   /* A altura desce automaticamente */
+    word-wrap: break-word; /* Força a quebra de linha se tiver uma palavra muito comprida */
+    /* ===================================== */
+
+    background-color: #ffde59; 
+    padding: 15px;
+    box-shadow: 3px 3px 10px rgba(0,0,0,0.2);
+    cursor: grab;
+    user-select: none; 
+    border-radius: 5px;
+    pointer-events: auto; 
+}
+
+.post-it .btn-apagar-nota {
+    background: #ff5e5e;
+    color: white;
+    border: none;
+    padding: 2px 6px;
+    cursor: pointer;
+    float: right;
+    border-radius: 3px;
+    font-weight: bold;
+}
+
+/* Botão de Logout */
+.btn-logout {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-left: 15px; /* Dá um espacinho dos outros botões */
+    transition: background-color 0.3s;
+}
+
+.btn-logout:hover {
+    background-color: #c82333;
+}

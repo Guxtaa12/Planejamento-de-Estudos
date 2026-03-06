@@ -14,22 +14,23 @@
     <div class="container">
         <header>
             <a href="home.html" class="btn-voltar">&larr; Voltar para Home</a>
-            <a href="feedback.html" class="btn-feedback"> Feedback<i class="icon">💬</i></a>
+            <button id="btn-logout" class="btn-logout">Sair <i class="fas fa-sign-out-alt"></i></button>
             <h1>Anotações Rápidas</h1>
         </header>
 
         <main>
             <section class="card" id="nova-anotacao">
                 <h2><i class="fa-solid fa-notes-medical"></i>Nova Anotação Rápida</h2>
-                <textarea id="texto-anotacoes" placeholder="Digite sua nova anotação aqui..."></textarea>
-                <button id="btn-add-anotacao" class="btn-add">Adicionar Anotação</button>
-                 <p id="anotacao-add-message" class="mensagem sucesso"></p> </section>
+                <form id="form-anotacao">
+                    <textarea id="texto-anotacao" placeholder="Digite sua nova anotação aqui..." required style="width: 100%; min-height: 80px; margin-bottom: 10px;"></textarea>
+                    <button type="submit" class="btn-add">Criar Post-it</button>
+                </form>
+                <p id="anotacao-add-message" class="mensagem sucesso"></p>
+            </section>
         
             <section class="card" id="painel-anotacoes-salvas">
-                <h2><i class="fa-solid fa-note-sticky"></i>Anotações Salvas</h2>
-                <ul id="lista-anotacoes-salvas">
-                    </ul>
-                 <p id="sem-anotacoes-mensagem" style="display: none; text-align: center; color: #888;">Nenhuma anotação salva ainda.</p>
+                <h2><i class="fa-solid fa-note-sticky"></i>Meu Mural de Post-its</h2>
+                
             </section>
         </main>
 
@@ -37,6 +38,8 @@
             <p>&copy; 2025 Plataforma de Estudos</p>
         </footer>
     </div>
+
+    <div id="quadro-anotacoes"></div>
 
     <script src="script.js"></script>
 </body>
