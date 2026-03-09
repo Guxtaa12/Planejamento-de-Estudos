@@ -246,7 +246,13 @@ document.addEventListener('DOMContentLoaded', function () {
                         clearInterval(timerInterval);
                         isRunning = false;
                         btnPomoStart.textContent = 'Iniciar';
-                        alert('Tempo finalizado! Hora de descansar ou focar.');
+                        
+                        // [NOVO] Ganho de XP por usar o Pomodoro
+                        let mins = parseInt(document.querySelector('.pomodoro-tab.active').getAttribute('data-time'));
+                        let xpGanho = mins === 25 ? 25 : (mins === 15 ? 15 : 5);
+                        ganharXP(xpGanho);
+                        
+                        alert(`Tempo finalizado! Hora de descansar ou focar. (+${xpGanho} XP)`);
                     }
                 }, 1000);
             }
@@ -355,9 +361,17 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // --- Lógica da Página: Cronograma/Lista de Tarefas ---
+    // --- Lógica da Página: Cronograma/Lista de Tarefas e Calendário ---
     const listaTarefasUl = document.getElementById('lista-tarefas');
     const semTarefasMsg = document.getElementById('sem-tarefas-mensagem');
+    
+    // Elementos do Calendário
+    const calendarGrid = document.getElementById('calendar-grid');
+    const mesAnoDisplay = document.getElementById('mes-ano-display');
+    const btnPrevMonth = document.getElementById('prev-month');
+    const btnNextMonth = document.getElementById('next-month');
+    let dataAtualCalendario = new Date();
+    let tarefasLocaisCache = []; // Para recarregar o calendário sem precisar bater no banco ao mudar o mês
 
     if (listaTarefasUl) {
         
@@ -379,19 +393,100 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 if (!tarefas || tarefas.length === 0) {
                     if (semTarefasMsg) semTarefasMsg.style.display = 'block';
+                    tarefasLocaisCache = [];
                 } else {
                     if (semTarefasMsg) semTarefasMsg.style.display = 'none';
+                    tarefasLocaisCache = tarefas;
                     tarefas.forEach(tarefa => {
                         const elementoTarefa = criarElementoTarefa(tarefa);
                         listaTarefasUl.appendChild(elementoTarefa);
                     });
                     verificarPrazosBanco(tarefas); 
                 }
+                
+                // Manda renderizar o novo Grid Calendário se existir na tela
+                if (calendarGrid) renderCalendar(tarefasLocaisCache);
+
             } catch (erro) {
                 console.error('Erro ao buscar tarefas:', erro.message);
                 listaTarefasUl.innerHTML = '<li style="color: #dc3545; text-align: center;">Erro ao carregar as tarefas.</li>';
             }
         }
+
+        // --- FUNÇÕES DO CALENDÁRIO ---
+        function renderCalendar(tarefas) {
+            if (!calendarGrid) return;
+            calendarGrid.innerHTML = '';
+            
+            const diasSemana = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+            diasSemana.forEach(dia => {
+                const div = document.createElement('div');
+                div.className = 'cal-day-name';
+                div.textContent = dia;
+                calendarGrid.appendChild(div);
+            });
+
+            const ano = dataAtualCalendario.getFullYear();
+            const mes = dataAtualCalendario.getMonth();
+            
+            const nomeMeses = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+            if (mesAnoDisplay) mesAnoDisplay.textContent = `${nomeMeses[mes]} ${ano}`;
+
+            const primeiroDiaMes = new Date(ano, mes, 1).getDay();
+            const ultimoDiaMes = new Date(ano, mes + 1, 0).getDate();
+
+            // Preenche espaços vazios iniciais
+            for(let i=0; i < primeiroDiaMes; i++) {
+                const empty = document.createElement('div');
+                empty.className = 'cal-day empty';
+                calendarGrid.appendChild(empty);
+            }
+
+            const hoje = new Date();
+
+            for(let d=1; d <= ultimoDiaMes; d++) {
+                const divDia = document.createElement('div');
+                divDia.className = 'cal-day';
+                if (hoje.getDate() === d && hoje.getMonth() === mes && hoje.getFullYear() === ano) {
+                    divDia.classList.add('hoje');
+                }
+
+                const spanNum = document.createElement('div');
+                spanNum.className = 'cal-num';
+                spanNum.textContent = d;
+                divDia.appendChild(spanNum);
+
+                // Filtrar tarefas visuais para este dia exato
+                // Formata com timezone local (Y-m-d local) para match perfeito com a string do banco
+                const dateStr = `${ano}-${String(mes+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                const tarefasDoDia = tarefas.filter(t => t.prazo === dateStr);
+                
+                tarefasDoDia.forEach(t => {
+                    const tDiv = document.createElement('div');
+                    tDiv.className = 'cal-task-item';
+                    if (t.concluida) tDiv.classList.add('concluida');
+                    tDiv.textContent = t.nome;
+                    tDiv.title = t.nome; 
+                    divDia.appendChild(tDiv);
+                });
+
+                calendarGrid.appendChild(divDia);
+            }
+        }
+
+        if (btnPrevMonth) {
+            btnPrevMonth.addEventListener('click', () => {
+                dataAtualCalendario.setMonth(dataAtualCalendario.getMonth() - 1);
+                renderCalendar(tarefasLocaisCache);
+            });
+        }
+        if (btnNextMonth) {
+            btnNextMonth.addEventListener('click', () => {
+                dataAtualCalendario.setMonth(dataAtualCalendario.getMonth() + 1);
+                renderCalendar(tarefasLocaisCache);
+            });
+        }
+        // ---------------------------------
 
         function criarElementoTarefa(tarefa) {
             const li = document.createElement('li');
@@ -456,6 +551,11 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (error) throw error;
 
                     li.classList.toggle('concluida', checkboxConcluir.checked);
+                    
+                    // [NOVO] Ganha XP ao concluir Tarefa
+                    if (checkboxConcluir.checked) {
+                        ganharXP(10);
+                    }
                 } catch (erro) {
                     alert("Erro ao atualizar o status da tarefa.");
                     checkboxConcluir.checked = !checkboxConcluir.checked; // Reverte o botão se der erro
@@ -683,6 +783,260 @@ document.addEventListener('DOMContentLoaded', function () {
         carregarAnotacoesDoBanco();
     }
 
+    // ==========================================
+    // LÓGICA DE GAMIFICAÇÃO E XP (GLOBAL)
+    // ==========================================
+
+    const profileCard = document.getElementById('profile-card');
+    
+    // Nomes criativos para os Níveis
+    const titulosNivel = {
+        1: "Aprendiz",
+        2: "Iniciante",
+        3: "Estudante Focado",
+        4: "Desbravador",
+        5: "Acadêmico",
+        6: "Mestre",
+        7: "Lendário"
+    };
+
+    async function carregarXP() {
+        if (!userId || !profileCard) return;
+
+        try {
+            document.getElementById('user-display-name').textContent = sessionStorage.getItem('loggedInUser') || 'Estudante';
+            
+            let { data, error } = await supabase
+                .from('niveis_usuario')
+                .select('xp, nivel')
+                .eq('user_id', userId)
+                .single();
+
+            // Se ainda não existir a linha pra esse usuário, a gente cria com zero
+            if (!data && (!error || error.code === 'PGRST116')) {
+                const { data: newUser, error: insertErr } = await supabase
+                    .from('niveis_usuario')
+                    .insert([{ user_id: userId, xp: 0, nivel: 1 }])
+                    .select()
+                    .single();
+                if(insertErr) throw insertErr;
+                data = newUser;
+            } else if (error && error.code !== 'PGRST116') {
+                throw error;
+            }
+
+            atualizarTelaXP(data.xp, data.nivel);
+
+        } catch (err) {
+            console.error("Erro ao carregar XP:", err.message);
+        }
+    }
+
+    // Função para atualizar os elementos visuais
+    function atualizarTelaXP(xpTotal, nivelAtual) {
+        if(!profileCard) return;
+
+        const maxXP = nivelAtual * 100; // Formula simples: Nível 1 exige 100XP. Nivel 2: 200XP
+        const xpAtualNivel = xpTotal % maxXP; // XP "sobrando" pro próximo nível
+        const porcentagem = Math.min((xpAtualNivel / maxXP) * 100, 100);
+        
+        const titulo = titulosNivel[nivelAtual] || "Transcendente";
+
+        document.getElementById('user-level-title').textContent = `Nível ${nivelAtual} - ${titulo}`;
+        document.getElementById('xp-current').textContent = `${xpAtualNivel} XP`;
+        document.getElementById('xp-next').textContent = `${maxXP} XP`;
+        document.getElementById('xp-bar-fill').style.width = `${porcentagem}%`;
+    }
+
+    // Função pra ganhar XP nas tarefas e pomodoro
+    window.ganharXP = async function(quantidade) {
+        if (!userId) return;
+
+        try {
+            // Busca o estado atual direto do banco para evitar dessincronização
+            let { data: atual, error } = await supabase
+                .from('niveis_usuario')
+                .select('xp, nivel')
+                .eq('user_id', userId)
+                .single();
+
+            if (error) return;
+
+            let novoXP = atual.xp + quantidade;
+            let nivelAtual = atual.nivel;
+            let maxXPObj = nivelAtual * 100;
+
+            // Logica de Evolução Genérica (1 Level Up por vez garantido)
+            if ((novoXP % maxXPObj) >= maxXPObj || novoXP >= maxXPObj) {
+                // Se o XP residual passar do máximo, upa e joga o XP pro próximo calculo
+                // Pra simplificar nesse modelo, vamos recalcular o nível com base no XP total linear
+            }
+            
+            // Formula Linear e Absoluta para não bugar:
+            // Nível = raiz aproximada ou blocos. Neste projeto adotaremos que a cada 100 ganhas sobe 1.
+            let calcNivel = Math.floor(novoXP / 100) + 1;
+
+            const { error: upErr } = await supabase
+                .from('niveis_usuario')
+                .update({ xp: novoXP, nivel: calcNivel })
+                .eq('user_id', userId);
+
+            if (!upErr) {
+                atualizarTelaXP(novoXP, calcNivel);
+            }
+
+        } catch (err) {
+            console.error("Erro ao ganhar XP:", err.message);
+        }
+    }
+
+    // Roda quando a tela abre
+    setTimeout(() => { carregarXP(); }, 500); // pequeno timeout para aguardar sessão
+
+    // ==========================================
+    // LÓGICA DOS CADERNOS (NOTION-LIKE EDITOR)
+    // ==========================================
+    const listaCadernosUl = document.getElementById('lista-cadernos');
+    const editorToolbar = document.getElementById('editor-toolbar');
+    const editorContent = document.getElementById('caderno-content');
+    const editorFooter = document.getElementById('editor-footer');
+    const inputCadernoTitulo = document.getElementById('caderno-titulo');
+    const btnNovoCaderno = document.getElementById('btn-novo-caderno');
+    const btnSaveCaderno = document.getElementById('btn-save-caderno');
+    const saveStatus = document.getElementById('save-status');
+
+    let cadernoAtivoId = null;
+
+    if (listaCadernosUl && editorContent) {
+        
+        async function carregarCadernos() {
+            if (!userId) return;
+            try {
+                const { data: cadernos, error } = await supabase
+                    .from('cadernos')
+                    .select('id, titulo, data_criacao')
+                    .eq('user_id', userId)
+                    .order('data_criacao', { ascending: false });
+                
+                if (error) throw error;
+                
+                listaCadernosUl.innerHTML = '';
+                if (cadernos && cadernos.length > 0) {
+                    cadernos.forEach(cad => {
+                        const li = document.createElement('li');
+                        li.className = 'caderno-item';
+                        if (cadernoAtivoId === cad.id) li.classList.add('active');
+                        
+                        const titulo = document.createElement('div');
+                        titulo.className = 'caderno-item-title';
+                        titulo.textContent = cad.titulo || 'Sem Título';
+                        
+                        const dataSpan = document.createElement('div');
+                        dataSpan.className = 'caderno-item-date';
+                        dataSpan.textContent = new Date(cad.data_criacao).toLocaleDateString('pt-BR');
+                        
+                        li.appendChild(titulo);
+                        li.appendChild(dataSpan);
+                        
+                        li.addEventListener('click', () => abrirCaderno(cad.id));
+                        listaCadernosUl.appendChild(li);
+                    });
+                } else {
+                    listaCadernosUl.innerHTML = '<li style="padding:15px; color:#888; font-size:0.9em; text-align:center;">Nenhum caderno criado.</li>';
+                }
+            } catch (err) {
+                console.error("Erro carregando cadernos:", err.message);
+            }
+        }
+
+        async function abrirCaderno(id) {
+            cadernoAtivoId = id;
+            try {
+                const { data, error } = await supabase
+                    .from('cadernos')
+                    .select('*')
+                    .eq('id', id)
+                    .single();
+                
+                if (error) throw error;
+                
+                inputCadernoTitulo.value = data.titulo || '';
+                editorContent.innerHTML = data.conteudo_html || '';
+                editorContent.contentEditable = "true";
+                editorToolbar.style.display = "flex";
+                editorFooter.style.display = "flex";
+                saveStatus.textContent = '';
+                
+                // Recarrega lista para marcar ativo
+                carregarCadernos();
+            } catch (err) {
+                console.error("Erro ao abrir caderno", err.message);
+            }
+        }
+
+        if (btnNovoCaderno) {
+            btnNovoCaderno.addEventListener('click', async () => {
+                 try {
+                    if (saveStatus) saveStatus.textContent = "Criando...";
+                    const { data, error } = await supabase
+                        .from('cadernos')
+                        .insert([{ user_id: userId, titulo: 'Novo Caderno', conteudo_html: '' }])
+                        .select()
+                        .single();
+                        
+                    if (error) throw error;
+                    abrirCaderno(data.id);
+                 } catch (err) {
+                     console.error("Erro ao criar novo caderno:", err.message);
+                 }
+            });
+        }
+
+        if (btnSaveCaderno) {
+            btnSaveCaderno.addEventListener('click', async () => {
+                if(!cadernoAtivoId) return;
+                try {
+                    saveStatus.textContent = "Salvando...";
+                    saveStatus.style.color = "#888";
+                    
+                    const { error } = await supabase
+                        .from('cadernos')
+                        .update({
+                            titulo: inputCadernoTitulo.value,
+                            conteudo_html: editorContent.innerHTML
+                        })
+                        .eq('id', cadernoAtivoId);
+                        
+                    if (error) throw error;
+                    
+                    saveStatus.textContent = "Salvo com sucesso!";
+                    saveStatus.style.color = "#28a745";
+                    
+                    // Recarrega lista pra atualizar o titulo alterado
+                    carregarCadernos();
+                    
+                    setTimeout(() => { saveStatus.textContent = ""; }, 3000);
+                } catch (err) {
+                    console.error("Erro ao salvar caderno", err.message);
+                    saveStatus.textContent = "Erro ao salvar!";
+                    saveStatus.style.color = "#dc3545";
+                }
+            });
+        }
+
+        // Configurar botões de Formatação
+        const formatBtns = document.querySelectorAll('.btn-format');
+        formatBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const cmd = btn.getAttribute('data-cmd');
+                const val = btn.getAttribute('data-val') || null;
+                document.execCommand(cmd, false, val);
+                editorContent.focus(); // Devolve foco ao editor pra continuar escrevendo
+            });
+        });
+
+        carregarCadernos();
+    }
 
     // --- Lógica da Página: Feedback ---
     const formFeedback = document.getElementById('form-feedback');

@@ -20,8 +20,22 @@
         </header>
 
         <main>
+            <!-- CALENDÁRIO VISUAL -->
+            <section class="card" id="calendario-mensal" style="margin-bottom: 25px;">
+                <div class="calendar-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <button class="btn-cal" id="prev-month" style="background:var(--cor-primaria); color:#fff; border:none; padding:8px 15px; border-radius:8px; cursor:pointer;">&lt; Anterior</button>
+                    <h2 id="mes-ano-display" style="margin:0;">Mês Ano</h2>
+                    <button class="btn-cal" id="next-month" style="background:var(--cor-primaria); color:#fff; border:none; padding:8px 15px; border-radius:8px; cursor:pointer;">Próximo &gt;</button>
+                </div>
+                
+                <div class="calendar-grid" id="calendar-grid">
+                    <!-- Nomes dos dias injetados via JS para manter o grid limpo -->
+                </div>
+            </section>
+
+            <!-- LISTA TRADICIONAL (MANTIDA PARA CONCLUIR TAREFAS COM CHECKBOX) -->
             <section class="card" id="cronograma">
-                <h2><i class="fa-regular fa-clipboard"></i> Lista de Tarefas</h2>
+                <h2><i class="fa-regular fa-clipboard"></i> Todas as Tarefas</h2>
                 <ul id="lista-tarefas">
                     <p id="sem-tarefas-mensagem" style="display: none; text-align: center; color: #888;">Nenhuma tarefa cadastrada ainda.</p>
                 </ul>

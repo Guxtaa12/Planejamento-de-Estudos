@@ -629,6 +629,93 @@ li.concluida .btn-remover {
     display: none;
 }
 
+/* --- Calendário Visual --- */
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    margin-top: 10px;
+}
+.cal-day-name {
+    text-align: center;
+    font-weight: bold;
+    color: var(--cor-textos);
+    padding: 10px 0;
+    font-size: 0.9em;
+    border-bottom: 1px solid var(--cor-borda);
+}
+.cal-day {
+    background-color: rgba(255,255,255,0.05); /* adapta bem ao darkmode */
+    min-height: 80px;
+    border: 1px solid var(--cor-borda);
+    border-radius: 8px;
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.cal-day.empty {
+    background-color: transparent; border: none;
+}
+.cal-day.hoje {
+    border-color: var(--cor-primaria);
+    background-color: rgba(86, 204, 242, 0.1);
+}
+.cal-num {
+    font-weight: bold; font-size: 0.85em; text-align: right; color: var(--cor-texto-corpo);
+}
+.cal-task-item {
+    background-color: var(--cor-secundaria);
+    color: #fff;
+    font-size: 0.7em;
+    padding: 3px 5px;
+    border-radius: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.cal-task-item.concluida {
+    background-color: #28a745;
+    text-decoration: line-through;
+    opacity: 0.8;
+}
+
+/* --- Cadernos (Rich Text Editor) --- */
+.cadernos-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    height: 70vh; /* Para preencher a tela */
+}
+@media (min-width: 800px) {
+    .cadernos-layout { flex-direction: row; align-items: stretch; }
+    .cadernos-sidebar { width: 300px; flex-shrink: 0; display: flex; flex-direction: column; overflow-y: hidden; }
+    .cadernos-editor { flex: 1; display: flex; flex-direction: column; justify-content: space-between; overflow-y: hidden; }
+}
+
+.lista-cadernos { list-style: none; padding: 0; margin-top: 15px; overflow-y: auto; flex: 1; }
+.caderno-item {
+    padding: 12px; border-bottom: 1px solid var(--cor-borda); cursor: pointer; transition: background 0.2s;
+    display: flex; flex-direction: column; gap: 4px; border-radius: 8px; margin-bottom: 8px;
+}
+.caderno-item:hover { background-color: rgba(255,255,255,0.1); }
+.caderno-item.active { background-color: var(--cor-primaria); color: #fff; border-color: transparent; }
+.caderno-item-title { font-weight: 600; font-size: 0.9em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;}
+.caderno-item-date { font-size: 0.7em; opacity: 0.8; }
+
+.editor-toolbar { padding-bottom: 15px; margin-bottom: 15px; border-bottom: 1px solid var(--cor-borda); display: flex; flex-direction: column; gap: 10px; }
+.input-titulo-caderno { width: 100%; border: none; background: transparent; font-size: 1.5em; font-weight: 700; color: var(--cor-texto-titulo); outline: none; }
+.toolbar-buttons { display: flex; gap: 5px; flex-wrap: wrap; }
+.btn-format { background: var(--cor-fundo); border: 1px solid var(--cor-borda); color: var(--cor-textos); width: 35px; height: 35px; border-radius: 6px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center;}
+.btn-format:hover { background: var(--cor-primaria); color: #fff; }
+
+.editor-content { flex: 1; outline: none; padding: 10px; overflow-y: auto; color: var(--cor-texto-corpo); line-height: 1.6; }
+.editor-content h1 { font-size: 1.8em; margin-bottom: 10px; color: var(--cor-texto-titulo); }
+.editor-content ul { padding-left: 20px; list-style-type: disc; margin-bottom: 10px; }
+
+.editor-footer { margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--cor-borda); display: flex; justify-content: flex-end; align-items: center; gap: 10px;}
+
 /* Botão de Tema Flutuante */
 .btn-theme {
     position: fixed;
@@ -662,25 +749,56 @@ li.concluida .btn-remover {
     flex-direction: column;
     gap: 25px;
 }
-@media (min-width: 800px) {
-    .container { max-width: 900px; }
+.home-col {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    flex: 1;
+}
+@media (min-width: 900px) {
+    .container { max-width: 1000px; }
     .home-layout { flex-direction: row; align-items: stretch; justify-content: center; }
-    .home-menu, .pomodoro-card { flex: 1; }
+}
+
+/* --- Estilos de Gamificação (Perfil XP) --- */
+.profile-card {
+    text-align: left;
+}
+.profile-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+.avatar-circle {
+    width: 60px; height: 60px; border-radius: 50%; background: linear-gradient(135deg, var(--cor-secundaria), var(--cor-primaria));
+    display: flex; align-items: center; justify-content: center; color: white; font-size: 1.5em; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+.profile-info h2 {
+    margin-bottom: 0px !important; border-bottom: none !important; padding-bottom: 0 !important; font-size: 1.4em !important;
+}
+.level-title {
+    color: var(--cor-primaria); font-weight: 600; font-size: 0.9em;
+}
+[data-theme="dark"] .level-title { color: var(--cor-secundaria); }
+
+.xp-container {
+    background: rgba(0,0,0,0.03); padding: 15px; border-radius: 12px; border: 1px solid var(--cor-borda);
+}
+.xp-labels {
+    display: flex; justify-content: space-between; font-size: 0.85em; font-weight: bold; margin-bottom: 8px; color: var(--cor-texto-corpo);
+}
+.xp-bar-bg {
+    width: 100%; height: 12px; background-color: var(--cor-borda); border-radius: 10px; overflow: hidden;
+}
+.xp-bar-fill {
+    height: 100%; background: linear-gradient(90deg, #f1c40f, #e67e22); border-radius: 10px; width: 0%;
+    transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* --- Estilos do Timer Pomodoro --- */
-.pomodoro-card {
-    background-color: var(--cor-card-bg);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-radius: 16px;
-    padding: 30px;
-    box-shadow: 0 8px 32px var(--cor-sombra);
-    text-align: center;
-    border: 1px solid rgba(255, 255, 255, 0.18);
-    transition: background-color 0.3s ease;
-}
-.pomodoro-card h2 {
+/* Já estão englobados pela herança do .card agora */
+.pomodoro-card h2, .lofi-card h2 {
     color: var(--cor-textos);
     margin-bottom: 20px;
     font-size: 1.8em;

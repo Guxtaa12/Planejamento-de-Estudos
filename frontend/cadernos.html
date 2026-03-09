@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meus Cadernos - Nidus</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="home.html" class="btn-voltar">&larr; Voltar para Home</a>
+            <h1><i class="fas fa-book-open"></i> Meus Cadernos</h1>
+        </header>
+
+        <main class="cadernos-layout">
+            <!-- Coluna de Navegação (Lista de Cadernos) -->
+            <aside class="card cadernos-sidebar">
+                <div class="sidebar-header">
+                    <h2>Meus Resumos</h2>
+                    <button id="btn-novo-caderno" class="btn-pomo" style="width: 100%; margin-top: 10px;"><i class="fas fa-plus"></i> Novo Caderno</button>
+                </div>
+                <ul id="lista-cadernos" class="lista-cadernos">
+                    <!-- Cadernos injetados via JS -->
+                </ul>
+            </aside>
+
+            <!-- Editor de Texto -->
+            <section class="card cadernos-editor">
+                <div id="editor-toolbar" class="editor-toolbar" style="display: none;">
+                    <input type="text" id="caderno-titulo" placeholder="Título do Caderno..." class="input-titulo-caderno" />
+                    
+                    <div class="toolbar-buttons">
+                        <button class="btn-format" data-cmd="bold" title="Negrito"><i class="fas fa-bold"></i></button>
+                        <button class="btn-format" data-cmd="italic" title="Itálico"><i class="fas fa-italic"></i></button>
+                        <button class="btn-format" data-cmd="underline" title="Sublinhado"><i class="fas fa-underline"></i></button>
+                        <button class="btn-format" data-cmd="insertUnorderedList" title="Lista"><i class="fas fa-list-ul"></i></button>
+                        <button class="btn-format" data-cmd="formatBlock" data-val="H1" title="Título Grande"><i class="fas fa-heading"></i></button>
+                    </div>
+                </div>
+
+                <div id="caderno-content" class="editor-content" contenteditable="false">
+                    <div style="text-align:center; color:#888; margin-top:50px;">
+                        <i class="fas fa-book fa-3x"></i><br><br>
+                        Selecione um caderno na lista ou crie um novo para começar a digitar.
+                    </div>
+                </div>
+
+                <div class="editor-footer" id="editor-footer" style="display: none;">
+                    <span id="save-status" style="font-size: 0.85em; color: #888; margin-right: 15px;"></span>
+                    <button id="btn-save-caderno" class="btn-pomo"><i class="fas fa-save"></i> Salvar</button>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            <div style="margin-bottom: 20px;"><button id="btn-logout" class="btn-logout footer-logout">Sair da Conta <i class="fas fa-sign-out-alt"></i></button></div>
+            <p>&copy; 2025 Nidus</p>
+        </footer>
+    </div>
+
+    <script src="js/script.js"></script>
+    <button id="btn-theme" class="btn-theme" title="Alternar Tema"><i class="fas fa-moon"></i></button>
+</body>
+</html>
