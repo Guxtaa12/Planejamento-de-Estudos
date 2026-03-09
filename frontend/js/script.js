@@ -1105,18 +1105,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 const { data, error } = await supabase
                     .from('usernames')
                     .select('*')
-                    .eq('email', emailLogado)
-                    .single();
+                    .eq('email', emailLogado);
 
                 if (error) throw error;
+                const userData = data && data.length > 0 ? data[0] : null;
 
-                if (data) {
-                    inputUsernameEdit.value = data.username;
-                    lblName.textContent = data.username;
-                    lblEmail.textContent = data.email;
+                if (userData) {
+                    inputUsernameEdit.value = userData.username;
+                    lblName.textContent = userData.username;
+                    lblEmail.textContent = userData.email;
 
-                    if (data.avatar_url) {
-                        imgPreview.src = data.avatar_url;
+                    if (userData.avatar_url) {
+                        imgPreview.src = userData.avatar_url;
                         // Tentar setar o radio button corresppondente ou cair no Custom
                         const radios = document.querySelectorAll('input[name="avatar-preset"]');
                         let isPreset = false;
@@ -1179,32 +1179,39 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             try {
+                let emailLogadoQuery = sessionStorage.getItem('userEmail');
+                if (!emailLogadoQuery) throw new Error("Sessão expirada. Atualize a página e tente novamente.");
+
                 // Checa se o Username já não está em uso por outro e-mail
                 if (novoNome !== lblName.textContent) {
                     const { data: existe, error: errExist } = await supabase
                         .from('usernames')
                         .select('username')
                         .eq('username', novoNome)
-                        .not('email', 'eq', emailLogado) // exclui ele próprio
-                        .single();
+                        .not('email', 'eq', emailLogadoQuery); // exclui ele próprio
 
-                    if (existe) {
+                    if (existe && existe.length > 0) {
                         throw new Error("Este Username já está em uso por outra pessoa.");
                     }
                 }
 
-                // Faz o update: como email é PK pro nosso fluxo ali, usamos ele no match
-                let emailLogadoQuery = sessionStorage.getItem('userEmail');
-                
-                const { error: errUpdate } = await supabase
-                    .from('usernames')
-                    .update({ 
-                        username: novoNome,
-                        avatar_url: novaFoto
-                    })
-                    .eq('email', emailLogadoQuery);
+                // Verifica se já tem linha nesse email pra poder dar Update ou Insert seguro
+                const { data: checkExist} = await supabase.from('usernames').select('*').eq('email', emailLogadoQuery);
 
-                if (errUpdate) throw errUpdate;
+                if (checkExist && checkExist.length > 0) {
+                    // Existe, faz update
+                    const { error: errUpdate } = await supabase
+                        .from('usernames')
+                        .update({ username: novoNome, avatar_url: novaFoto })
+                        .eq('email', emailLogadoQuery);
+                    if (errUpdate) throw errUpdate;
+                } else {
+                    // Não existe na tabela pública (usuário logou direto na Vercel auth), cria linha!
+                    const { error: errInsert } = await supabase
+                        .from('usernames')
+                        .insert([{ email: emailLogadoQuery, username: novoNome, avatar_url: novaFoto }]);
+                    if (errInsert) throw errInsert;
+                }
 
                 pStatus.textContent = "Perfil atualizado! Você será redirecionado para a Home...";
                 pStatus.style.color = "#28a745";
