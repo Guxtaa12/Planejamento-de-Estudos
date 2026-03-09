@@ -28,6 +28,30 @@ async function registrarUsuario(event) {
         return;
     }
 
+    // [NOVO] Verifica se o nome de usuário já existe na tabela `usernames`
+    try {
+        const { data: userExiste, error: errBusca } = await supabase
+            .from('usernames')
+            .select('username')
+            .eq('username', inputNomeRegistro)
+            .single();
+
+        if (userExiste) {
+            if (registerMessage) {
+                registerMessage.textContent = 'Este Nome de Usuário já está em uso, escolha outro!';
+                registerMessage.className = 'mensagem erro';
+                registerMessage.style.color = '#dc3545';
+                registerMessage.style.display = 'block';
+            }
+            return; // Impede o cadastro
+        }
+    } catch (err) {
+        // Se der erro que não encontrou (PostgREST), seguimos o jogo, é sinal de que não existe = Ótimo.
+        if(err.code !== 'PGRST116') {
+             console.error("Erro consultando username:", err.message);
+        }
+    }
+
     // Supabase Auth: signUp (O Supabase não salva "nome" de usuário primário por default,
     // usamos o email como chave, e o nome fica salvo nos metadados).
     try {
@@ -42,6 +66,13 @@ async function registrarUsuario(event) {
         });
 
         if (error) throw error;
+        
+        // Se a conta Auth foi criada, salvamos o apelido na tabela pública para bloquear outros e liberar login sem email
+        const { error: errInsert } = await supabase
+            .from('usernames')
+            .insert([{ username: inputNomeRegistro, email: inputEmailRegistro }]);
+
+        if(errInsert) console.error("Não salvou o username público", errInsert.message);
 
         if (registerMessage) {
             registerMessage.textContent = 'Registro realizado com sucesso! Você será redirecionado.';
@@ -81,9 +112,28 @@ async function fazerLogin(event) {
         return;
     }
 
+    let emailFinalParaAuth = emailOuUsuario;
+
     try {
+        // [NOVO] Se o que o usuário digitou NÃO parece um email (não tem '@'), 
+        // supomos que é um Username e buscamos qual é o verdadeiro Email desse cara:
+        if (!emailOuUsuario.includes('@')) {
+            const { data: registroUsername, error: errBusca } = await supabase
+                .from('usernames')
+                .select('email')
+                .eq('username', emailOuUsuario)
+                .single();
+
+            // Achamos o email dele associado a esse Username? Substitui a variável!
+            if (registroUsername && registroUsername.email) {
+                emailFinalParaAuth = registroUsername.email;
+            } else {
+                throw new Error("Usuário não encontrado!");
+            }
+        }
+
         const { data, error } = await supabase.auth.signInWithPassword({
-            email: emailOuUsuario,
+            email: emailFinalParaAuth,
             password: senhaDigitada
         });
 

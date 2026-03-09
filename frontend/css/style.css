@@ -563,26 +563,29 @@ footer {
 
 /* --- Estilos para Botão Logout --- */
 .btn-logout {
-    position: absolute;
-    top: 25px;
-    right: 25px;
-    /* Posiciona no canto direito */
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: var(--cor-delete);
     color: white;
-    padding: 8px 15px;
+    padding: 10px 20px;
     border-radius: 20px;
     text-decoration: none;
-    font-size: 0.9em;
+    font-size: 0.95em;
     font-weight: 600;
     border: none;
     cursor: pointer;
-    transition: background-color 0.3s ease;
-    z-index: 10;
-    /* Garante que fique acima de outros elementos do header */
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .btn-logout:hover {
-    background-color: rgba(255, 255, 255, 0.4);
+    background-color: var(--cor-delete-hover);
+    transform: scale(1.05);
+}
+
+.footer-logout {
+    margin-top: 15px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
 }
 
 /* Estilo base do item da lista (opcional, ajuste como preferir) */
@@ -871,13 +874,11 @@ li span {
 
 
 
-    /* Ajuste responsivo para o botão logout */
+    /* Ajuste responsivo para o botão logout (agora no footer, sem absolute) */
     @media (max-width: 600px) {
         .btn-logout {
-            top: 15px;
-            right: 15px;
-            padding: 6px 12px;
-            font-size: 0.8em;
+            padding: 8px 15px;
+            font-size: 0.85em;
         }
 
         /* Ajustar header se o botão voltar e logout estiverem juntos */
