@@ -1,5 +1,13 @@
 // ==========================================
-// FUNÇÕES DE COMUNICAÇÃO COM A API (PYTHON)
+// CONFIGURAÇÃO DO SUPABASE
+// ==========================================
+const supabaseUrl = 'https://afpxmcevtdocppbnbhfx.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFmcHhtY2V2dGRvY3BwYm5iaGZ4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNjg2NDQsImV4cCI6MjA4ODY0NDY0NH0.7ZsnZlCj5qX6PTO0V-eiP4vysO73ww75VoY5jLt0WMM';
+// Usar var previne o erro "Identifier already declared" em páginas em que o script é re-injetado
+var supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+// ==========================================
+// FUNÇÕES DE COMUNICAÇÃO COM A API (SUPABASE)
 // ==========================================
 
 async function registrarUsuario(event) {
@@ -11,7 +19,6 @@ async function registrarUsuario(event) {
     const inputSenhaRegistro = document.getElementById('registrar-senha').value;
     const registerMessage = document.getElementById('register-message');
 
-    // Validação simples para ver se nenhum dos três está vazio
     if (!inputNomeRegistro || !inputEmailRegistro || !inputSenhaRegistro) {
         if (registerMessage) {
             registerMessage.textContent = 'Por favor, preencha todos os campos.';
@@ -21,44 +28,36 @@ async function registrarUsuario(event) {
         return;
     }
 
-    // Monta o pacote certinho para o Python
-    const dadosUsuario = {
-        nome: inputNomeRegistro,
-        email: inputEmailRegistro,
-        senha: inputSenhaRegistro
-    };
-
+    // Supabase Auth: signUp (O Supabase não salva "nome" de usuário primário por default,
+    // usamos o email como chave, e o nome fica salvo nos metadados).
     try {
-        const resposta = await fetch('http://127.0.0.1:8000/registrar', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(dadosUsuario)
+        const { data, error } = await supabase.auth.signUp({
+            email: inputEmailRegistro,
+            password: inputSenhaRegistro,
+            options: {
+                data: {
+                    display_name: inputNomeRegistro
+                }
+            }
         });
 
-        const resultado = await resposta.json();
+        if (error) throw error;
 
-        if (resposta.ok) {
-            if (registerMessage) {
-                registerMessage.textContent = 'Registro realizado com sucesso! Você será redirecionado.';
-                registerMessage.className = 'mensagem sucesso';
-                registerMessage.style.color = '#28a745';
-                registerMessage.style.display = 'block';
-            }
-            setTimeout(() => {
-                window.location.href = 'login.html';
-            }, 3000);
-        } else {
-            if (registerMessage) {
-                registerMessage.textContent = 'Erro: ' + resultado.erro;
-                registerMessage.className = 'mensagem erro';
-                registerMessage.style.color = '#dc3545';
-                registerMessage.style.display = 'block';
-            }
-        }
-    } catch (erro) {
-        console.error('Erro:', erro);
         if (registerMessage) {
-            registerMessage.textContent = 'Erro ao conectar com o servidor Python.';
+            registerMessage.textContent = 'Registro realizado com sucesso! Você será redirecionado.';
+            registerMessage.className = 'mensagem sucesso';
+            registerMessage.style.color = '#28a745';
+            registerMessage.style.display = 'block';
+        }
+        
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 3000);
+
+    } catch (erro) {
+        console.error('Erro no registro Supabase:', erro.message);
+        if (registerMessage) {
+            registerMessage.textContent = 'Erro: ' + erro.message;
             registerMessage.className = 'mensagem erro';
             registerMessage.style.color = '#dc3545';
             registerMessage.style.display = 'block';
@@ -82,51 +81,40 @@ async function fazerLogin(event) {
         return;
     }
 
-    const dadosLogin = {
-        usuario: emailOuUsuario,
-
-        senha: senhaDigitada
-    };
-
     try {
-        const resposta = await fetch('http://127.0.0.1:8000/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(dadosLogin)
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email: emailOuUsuario,
+            password: senhaDigitada
         });
 
-        const resultado = await resposta.json();
+        if (error) throw error;
 
-        if (resposta.ok) {
-            // Salva na sessão que o usuário logou com sucesso (para o botão de logout funcionar)
-            sessionStorage.setItem('loggedInUser', resultado.nome);
-            sessionStorage.setItem('userId', resultado.id);
+        // Pega o nome do usuário dos metadados
+        const nomeUsuario = data.user.user_metadata.display_name || 'Usuário';
 
-            if (mensagemTexto) {
-                mensagemTexto.style.color = '#28a745';
-                mensagemTexto.style.display = 'block';
-                mensagemTexto.textContent = 'Bem-vindo, ' + resultado.nome + '! Entrando...';
-            }
-            setTimeout(() => {
-                window.location.href = 'home.html';
-            }, 1000);
-        } else {
-            if (mensagemTexto) {
-                mensagemTexto.style.color = '#dc3545';
-                mensagemTexto.style.display = 'block';
-                mensagemTexto.textContent = 'Erro: Usuário ou senha incorretos!';
-            }
+        // Salva na sessão (embora o Supabase gerencie a sessão automaticamente, mantemos compatibilidade com o layout)
+        sessionStorage.setItem('loggedInUser', nomeUsuario);
+        sessionStorage.setItem('userId', data.user.id); // O Supabase usa UUID
+
+        if (mensagemTexto) {
+            mensagemTexto.style.color = '#28a745';
+            mensagemTexto.style.display = 'block';
+            mensagemTexto.textContent = 'Bem-vindo, ' + nomeUsuario + '! Entrando...';
         }
+        
+        setTimeout(() => {
+            window.location.href = 'home.html';
+        }, 1000);
+
     } catch (erro) {
-        console.error('Erro:', erro);
+        console.error('Erro de login Supabase:', erro.message);
         if (mensagemTexto) {
             mensagemTexto.style.color = '#dc3545';
             mensagemTexto.style.display = 'block';
-            mensagemTexto.textContent = 'Erro: falha na conexão.';
+            mensagemTexto.textContent = 'Erro: Usuário ou senha incorretos.';
         }
     }
 }
-
 
 // ==========================================
 // EVENTOS DA PÁGINA (DOM CARREGADO)
@@ -146,19 +134,17 @@ document.addEventListener('DOMContentLoaded', function () {
         formLogin.addEventListener('submit', fazerLogin);
     }
 
-   // --- Lógica de Logout ---
+    // --- Lógica de Logout ---
     const btnLogout = document.getElementById('btn-logout');
     if (btnLogout) {
-        btnLogout.addEventListener('click', function () {
-            // Confirmação rápida pra evitar clique sem querer
+        btnLogout.addEventListener('click', async function () {
             const confirmar = window.confirm("Tem certeza que deseja sair da sua conta?");
             
             if (confirmar) {
-                // Limpa o ID e o Nome que estavam salvos no navegador
+                await supabase.auth.signOut();
                 sessionStorage.removeItem('userId');
                 sessionStorage.removeItem('loggedInUser');
                 
-                // Redireciona para a página de login
                 window.location.href = 'login.html';
             }
         });
@@ -194,38 +180,36 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             if (nome) {
-                // Monta a tarefa com o ID do usuário para o Python saber de quem é
+                // Monta a tarefa com o ID do usuário para o Supabase saber de quem é
                 const novaTarefa = {
-                    usuario_id: parseInt(userId),
+                    user_id: userId,
                     nome: nome,
-                    prazo: prazo || "", 
+                    prazo: prazo || null, 
                     concluida: false
                 };
 
                 try {
-                    // Manda para a nossa nova rota no Python
-                    const resposta = await fetch('http://127.0.0.1:8000/tarefas', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(novaTarefa)
-                    });
+                    // Manda para o Supabase
+                    const { error } = await supabase
+                        .from('tarefas')
+                        .insert([novaTarefa]);
 
-                    if (resposta.ok) {
-                        inputNomeTarefa.value = '';
-                        inputPrazoTarefa.value = '';
+                    if (error) throw error;
 
-                        if (mensagemSucesso) {
-                            mensagemSucesso.textContent = 'Tarefa salva no banco de dados!';
-                            mensagemSucesso.style.display = 'block';
-                            setTimeout(() => {
-                                mensagemSucesso.style.display = 'none';
-                            }, 3000); 
-                        }
-                        inputNomeTarefa.focus(); 
+                    inputNomeTarefa.value = '';
+                    inputPrazoTarefa.value = '';
+
+                    if (mensagemSucesso) {
+                        mensagemSucesso.textContent = 'Tarefa salva no banco de dados!';
+                        mensagemSucesso.style.display = 'block';
+                        setTimeout(() => {
+                            mensagemSucesso.style.display = 'none';
+                        }, 3000); 
                     }
+                    inputNomeTarefa.focus(); 
                 } catch (erro) {
-                    console.error('Erro ao salvar tarefa:', erro);
-                    alert('Erro: falha na conexão.');
+                    console.error('Erro ao salvar tarefa:', erro.message);
+                    alert('Erro ao salvar a tarefa no banco.');
                 }
             } else {
                 alert('Por favor, digite o nome da tarefa.');
@@ -245,13 +229,17 @@ document.addEventListener('DOMContentLoaded', function () {
             listaTarefasUl.innerHTML = '<li style="text-align: center;">Carregando suas tarefas...</li>'; 
 
             try {
-                // Busca as tarefas específicas desse usuário
-                const resposta = await fetch(`http://127.0.0.1:8000/tarefas/${userId}`);
-                const tarefas = await resposta.json();
+                // Busca as tarefas específicas desse usuário no Supabase
+                const { data: tarefas, error } = await supabase
+                    .from('tarefas')
+                    .select('*')
+                    .order('prazo', { ascending: true });
+                
+                if (error) throw error;
 
                 listaTarefasUl.innerHTML = ''; 
 
-                if (tarefas.length === 0) {
+                if (!tarefas || tarefas.length === 0) {
                     if (semTarefasMsg) semTarefasMsg.style.display = 'block';
                 } else {
                     if (semTarefasMsg) semTarefasMsg.style.display = 'none';
@@ -262,7 +250,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     verificarPrazosBanco(tarefas); 
                 }
             } catch (erro) {
-                console.error('Erro ao buscar tarefas:', erro);
+                console.error('Erro ao buscar tarefas:', erro.message);
                 listaTarefasUl.innerHTML = '<li style="color: #dc3545; text-align: center;">Erro ao carregar as tarefas.</li>';
             }
         }
@@ -300,8 +288,14 @@ document.addEventListener('DOMContentLoaded', function () {
                 const confirmado = window.confirm(`Tem certeza que deseja remover a tarefa "${tarefa.nome}"?`);
                 if (confirmado) {
                     try {
-                        // Avisa o Python para deletar
-                        await fetch(`http://127.0.0.1:8000/tarefas/${tarefa.id}`, { method: 'DELETE' });
+                        // Avisa o Supabase para deletar
+                        const { error } = await supabase
+                            .from('tarefas')
+                            .delete()
+                            .eq('id', tarefa.id);
+                        
+                        if (error) throw error;
+
                         li.remove();              
                         verificarListaVazia(); 
                     } catch (erro) {
@@ -315,12 +309,14 @@ document.addEventListener('DOMContentLoaded', function () {
             checkboxConcluir.checked = tarefa.concluida;
             checkboxConcluir.addEventListener('change', async function () {
                 try {
-                    // Avisa o Python que o status mudou (Put)
-                    await fetch(`http://127.0.0.1:8000/tarefas/${tarefa.id}/status`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ concluida: checkboxConcluir.checked })
-                    });
+                    // Atualiza concluida no Supabase
+                    const { error } = await supabase
+                        .from('tarefas')
+                        .update({ concluida: checkboxConcluir.checked })
+                        .eq('id', tarefa.id);
+                        
+                    if (error) throw error;
+
                     li.classList.toggle('concluida', checkboxConcluir.checked);
                 } catch (erro) {
                     alert("Erro ao atualizar o status da tarefa.");
@@ -403,11 +399,18 @@ document.addEventListener('DOMContentLoaded', function () {
             quadroAnotacoes.innerHTML = ''; 
             
             try {
-                const resposta = await fetch(`http://127.0.0.1:8000/anotacoes/${userId}`);
-                const notas = await resposta.json();
-                notas.forEach(nota => criarPostItVisual(nota));
+                const { data: notas, error } = await supabase
+                    .from('anotacoes')
+                    .select('*')
+                    .eq('user_id', userId);
+
+                if (error) throw error;
+                
+                if (notas) {
+                    notas.forEach(nota => criarPostItVisual(nota));
+                }
             } catch (erro) {
-                console.error('Erro ao buscar notas:', erro);
+                console.error('Erro ao buscar notas:', erro.message);
             }
         }
 
@@ -430,8 +433,17 @@ document.addEventListener('DOMContentLoaded', function () {
             btnApagar.textContent = 'X';
             btnApagar.onclick = async function() {
                 if(confirm('Apagar este Post-it?')) {
-                    await fetch(`http://127.0.0.1:8000/anotacoes/${nota.id}`, { method: 'DELETE' });
-                    div.remove();
+                    try {
+                        const { error } = await supabase
+                            .from('anotacoes')
+                            .delete()
+                            .eq('id', nota.id);
+                        
+                        if (error) throw error;
+                        div.remove();
+                    } catch (erro) {
+                        console.error('Erro ao deletar nota:', erro.message);
+                    }
                 }
             };
 
@@ -475,14 +487,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 const posYFinal = parseInt(notaSendoArrastada.style.top) || 0;
 
                 try {
-                    // Manda a posição final para o Python salvar no banco
-                    await fetch(`http://127.0.0.1:8000/anotacoes/${idNota}/posicao`, {
-                        method: 'PUT',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ pos_x: posXFinal, pos_y: posYFinal })
-                    });
+                    // Manda a posição final para o Supabase salvar no banco
+                    const { error } = await supabase
+                        .from('anotacoes')
+                        .update({ pos_x: posXFinal, pos_y: posYFinal })
+                        .eq('id', idNota);
+
+                    if (error) throw error;
                 } catch (erro) {
-                    console.error('Erro ao salvar posição:', erro);
+                    console.error('Erro ao salvar posição:', erro.message);
                 }
 
                 notaSendoArrastada = null; // Soltou a nota
@@ -497,24 +510,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!texto || !userId) return;
 
                 const novaNota = {
-                    usuario_id: parseInt(userId),
+                    user_id: userId,
                     texto: texto,
                     pos_x: 50, // Posição inicial padrão quando nasce
                     pos_y: 50  // Posição inicial padrão quando nasce
                 };
 
                 try {
-                    const resposta = await fetch('http://127.0.0.1:8000/anotacoes', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(novaNota)
-                    });
-                    if (resposta.ok) {
-                        inputTextoAnotacao.value = '';
-                        carregarAnotacoesDoBanco(); // Atualiza a tela
-                    }
+                    const { error } = await supabase
+                        .from('anotacoes')
+                        .insert([novaNota]);
+
+                    if (error) throw error;
+                    
+                    inputTextoAnotacao.value = '';
+                    carregarAnotacoesDoBanco(); // Atualiza a tela
                 } catch (erro) {
-                    console.error('Erro ao criar anotação:', erro);
+                    console.error('Erro ao criar anotação:', erro.message);
                 }
             });
         }
