@@ -183,6 +183,9 @@ document.addEventListener('DOMContentLoaded', function () {
             sessionStorage.setItem('userEmail', session.user.email);
             if (!sessionStorage.getItem('userId')) sessionStorage.setItem('userId', session.user.id);
         }
+        
+        // SOMENTE INICIA A LÓGICA DE PERFIL SE O EMAIL ESTIVER NO CACHE
+        initPerfilLogic();
     });
 
     // Aplica o tema salvo logo ao iniciar a página
@@ -1081,8 +1084,9 @@ document.addEventListener('DOMContentLoaded', function () {
     // ==========================================
     // LÓGICA DO MEU PERFIL (AVATAR E NOME)
     // ==========================================
-    const formPerfil = document.getElementById('form-perfil');
-    if (formPerfil && sessionStorage.getItem('userEmail')) {
+    function initPerfilLogic() {
+        const formPerfil = document.getElementById('form-perfil');
+        if (formPerfil && sessionStorage.getItem('userEmail')) {
         
         const inputUsernameEdit = document.getElementById('perfil-username');
         const imgPreview = document.getElementById('preview-avatar');
@@ -1092,11 +1096,12 @@ document.addEventListener('DOMContentLoaded', function () {
         const lblEmail = document.getElementById('perfil-display-email');
         const pStatus = document.getElementById('perfil-status');
 
-        let emailLogado = sessionStorage.getItem('userEmail');
-        
         // 1. Carregar os dados atuais e preencher a tela
         async function loadProfileData() {
             try {
+                let emailLogado = sessionStorage.getItem('userEmail');
+                if (!emailLogado) return; // Segurança caso a internet demore a trazer o auth
+                
                 const { data, error } = await supabase
                     .from('usernames')
                     .select('*')
@@ -1189,14 +1194,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
 
                 // Faz o update: como email é PK pro nosso fluxo ali, usamos ele no match
-                // (ou id se houvesse, mas nossa tabela original relacionou e-mail ou UUID)
+                let emailLogadoQuery = sessionStorage.getItem('userEmail');
+                
                 const { error: errUpdate } = await supabase
                     .from('usernames')
                     .update({ 
                         username: novoNome,
                         avatar_url: novaFoto
                     })
-                    .eq('email', emailLogado);
+                    .eq('email', emailLogadoQuery);
 
                 if (errUpdate) throw errUpdate;
 
@@ -1217,6 +1223,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 pStatus.style.color = "#dc3545";
             }
         });
-    }
-
+      }
+    } // Fim function initPerfilLogic
 });
