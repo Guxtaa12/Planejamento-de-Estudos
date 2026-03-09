@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meu Perfil - Nidus</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <a href="home.html" class="btn-voltar">&larr; Voltar para Home</a>
+            <h1><i class="fas fa-user-edit"></i> Meu Perfil</h1>
+        </header>
+
+        <main>
+            <section class="card" id="perfil-card-edit" style="max-width: 600px; margin: 0 auto;">
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <!-- A foto principal que vai mudar em tempo real -->
+                    <img id="preview-avatar" src="https://ui-avatars.com/api/?name=Estudante&background=random" alt="Avatar Preview" style="width:120px; height:120px; border-radius:50%; object-fit:cover; box-shadow: 0 8px 20px rgba(0,0,0,0.3); border: 4px solid var(--cor-secundaria); transition: 0.3s;" />
+                    <h2 style="margin-top: 15px; margin-bottom: 5px;" id="perfil-display-name">Carregando...</h2>
+                    <p style="color: var(--cor-texto-corpo); font-size: 0.9em;" id="perfil-display-email">carregando@email.com</p>
+                </div>
+
+                <form id="form-perfil">
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label for="perfil-username" style="display:block; margin-bottom:8px; font-weight:600; color:var(--cor-textos);">Mudar meu Nome de Usuário (Username):</label>
+                        <input type="text" id="perfil-username" placeholder="Seu novo apelido..." required style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--cor-borda); background: var(--cor-fundo); color: var(--cor-textos); font-size:1em;" />
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 30px;">
+                        <label style="display:block; margin-bottom:12px; font-weight:600; color:var(--cor-textos);">Escolher Foto de Perfil (Avatar):</label>
+                        
+                        <div class="avatar-options" style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; justify-content: center;">
+                            <!-- Opções pré-definidas elegantes -->
+                            <label class="avatar-choice">
+                                <input type="radio" name="avatar-preset" value="https://api.dicebear.com/7.x/adventurer/svg?seed=Felix" checked>
+                                <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Felix" alt="Felix" />
+                            </label>
+                            <label class="avatar-choice">
+                                <input type="radio" name="avatar-preset" value="https://api.dicebear.com/7.x/adventurer/svg?seed=Aneka">
+                                <img src="https://api.dicebear.com/7.x/adventurer/svg?seed=Aneka" alt="Aneka" />
+                            </label>
+                            <label class="avatar-choice">
+                                <input type="radio" name="avatar-preset" value="https://api.dicebear.com/7.x/avataaars/svg?seed=Nidus">
+                                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Nidus" alt="Nidus" />
+                            </label>
+                            <label class="avatar-choice">
+                                <input type="radio" name="avatar-preset" value="https://api.dicebear.com/7.x/bottts/svg?seed=Robot">
+                                <img src="https://api.dicebear.com/7.x/bottts/svg?seed=Robot" alt="Robot" />
+                            </label>
+                            <label class="avatar-choice">
+                                <input type="radio" name="avatar-preset" value="custom">
+                                <div class="custom-avatar-btn"><i class="fas fa-link"></i> Link</div>
+                            </label>
+                        </div>
+                        
+                        <!-- Mostrado se ele escolher a opção "Link customizado" -->
+                        <div id="custom-avatar-wrapper" style="display: none;">
+                            <input type="url" id="perfil-avatar-url" placeholder="Cole a URL da sua foto (jpg, png, gif, discord...)" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--cor-borda); background: var(--cor-fundo); color: var(--cor-textos); font-size:1em;" />
+                        </div>
+                    </div>
+
+                    <p id="perfil-status" style="display:none; text-align:center; font-weight:bold;"></p>
+                    
+                    <button type="submit" class="btn-pomo" style="width: 100%;"><i class="fas fa-save"></i> Salvar Alterações</button>
+                    
+                </form>
+            </section>
+        </main>
+
+        <footer>
+            <div style="margin-bottom: 20px;"><button id="btn-logout" class="btn-logout footer-logout">Sair da Conta <i class="fas fa-sign-out-alt"></i></button></div>
+            <p>&copy; 2025 Nidus</p>
+        </footer>
+    </div>
+
+    <script src="js/script.js"></script>
+    <button id="btn-theme" class="btn-theme" title="Alternar Tema"><i class="fas fa-moon"></i></button>
+</body>
+</html>

@@ -812,20 +812,28 @@ document.addEventListener('DOMContentLoaded', function () {
                 .eq('user_id', userId)
                 .single();
 
-            // Se ainda não existir a linha pra esse usuário, a gente cria com zero
-            if (!data && (!error || error.code === 'PGRST116')) {
-                const { data: newUser, error: insertErr } = await supabase
-                    .from('niveis_usuario')
-                    .insert([{ user_id: userId, xp: 0, nivel: 1 }])
-                    .select()
+            // [NOVO] Busca também o avatar do cara na tabela usernames para exibir na Home
+            let avatarDoCara = null;
+            let nomeDoCara = sessionStorage.getItem('loggedInUser') || 'Estudante';
+            
+            // Só por segurança vamos ler o usernames pelo email dele
+            const emailSession = sessionStorage.getItem('userEmail');
+            if (emailSession) {
+               const { data: userData } = await supabase
+                    .from('usernames')
+                    .select('username, avatar_url')
+                    .eq('email', emailSession)
                     .single();
-                if(insertErr) throw insertErr;
-                data = newUser;
-            } else if (error && error.code !== 'PGRST116') {
-                throw error;
+               
+               if(userData) {
+                   nomeDoCara = userData.username;
+                   avatarDoCara = userData.avatar_url;
+                   sessionStorage.setItem('loggedInUser', nomeDoCara);
+                   document.getElementById('user-display-name').textContent = nomeDoCara;
+               }
             }
-
-            atualizarTelaXP(data.xp, data.nivel);
+            
+            atualizarTelaXP(data.xp, data.nivel, avatarDoCara);
 
         } catch (err) {
             console.error("Erro ao carregar XP:", err.message);
@@ -833,7 +841,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // Função para atualizar os elementos visuais
-    function atualizarTelaXP(xpTotal, nivelAtual) {
+    function atualizarTelaXP(xpTotal, nivelAtual, avatarUrl) {
         if(!profileCard) return;
 
         const maxXP = nivelAtual * 100; // Formula simples: Nível 1 exige 100XP. Nivel 2: 200XP
@@ -846,6 +854,12 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('xp-current').textContent = `${xpAtualNivel} XP`;
         document.getElementById('xp-next').textContent = `${maxXP} XP`;
         document.getElementById('xp-bar-fill').style.width = `${porcentagem}%`;
+        
+        // Se a chamada mandar um avatarURL e houver a div na Home, substitui o ícone:
+        const avatarCircle = document.querySelector('.avatar-circle');
+        if (avatarCircle && avatarUrl) {
+            avatarCircle.innerHTML = `<img src="${avatarUrl}" alt="Avatar" style="width:100%; height:100%; border-radius:50%; object-fit:cover;" />`;
+        }
     }
 
     // Função pra ganhar XP nas tarefas e pomodoro
@@ -1054,4 +1068,146 @@ document.addEventListener('DOMContentLoaded', function () {
             }, 3000); 
         });
     }
+
+    // ==========================================
+    // LÓGICA DO MEU PERFIL (AVATAR E NOME)
+    // ==========================================
+    const formPerfil = document.getElementById('form-perfil');
+    if (formPerfil && sessionStorage.getItem('userEmail')) {
+        
+        const inputUsernameEdit = document.getElementById('perfil-username');
+        const imgPreview = document.getElementById('preview-avatar');
+        const customWrapper = document.getElementById('custom-avatar-wrapper');
+        const inputCustomAvatar = document.getElementById('perfil-avatar-url');
+        const lblName = document.getElementById('perfil-display-name');
+        const lblEmail = document.getElementById('perfil-display-email');
+        const pStatus = document.getElementById('perfil-status');
+
+        let emailLogado = sessionStorage.getItem('userEmail');
+        
+        // 1. Carregar os dados atuais e preencher a tela
+        async function loadProfileData() {
+            try {
+                const { data, error } = await supabase
+                    .from('usernames')
+                    .select('*')
+                    .eq('email', emailLogado)
+                    .single();
+
+                if (error) throw error;
+
+                if (data) {
+                    inputUsernameEdit.value = data.username;
+                    lblName.textContent = data.username;
+                    lblEmail.textContent = data.email;
+
+                    if (data.avatar_url) {
+                        imgPreview.src = data.avatar_url;
+                        // Tentar setar o radio button corresppondente ou cair no Custom
+                        const radios = document.querySelectorAll('input[name="avatar-preset"]');
+                        let isPreset = false;
+                        radios.forEach(r => {
+                            if(r.value === data.avatar_url) {
+                                r.checked = true;
+                                isPreset = true;
+                            }
+                        });
+                        if (!isPreset && data.avatar_url.startsWith('http')) {
+                            document.querySelector('input[name="avatar-preset"][value="custom"]').checked = true;
+                            customWrapper.style.display = 'block';
+                            inputCustomAvatar.value = data.avatar_url;
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("Erro carregando Perfil:", e.message);
+            }
+        }
+        
+        loadProfileData();
+
+        // 2. Controlar os rádio botões
+        const avatarRadios = document.querySelectorAll('input[name="avatar-preset"]');
+        avatarRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                if(e.target.value === 'custom') {
+                    customWrapper.style.display = 'block';
+                } else {
+                    customWrapper.style.display = 'none';
+                    imgPreview.src = e.target.value; // Pré-visualiza os pré-setados na hora
+                }
+            });
+        });
+
+        // Ouvir blur no custom para atualizar preview
+        inputCustomAvatar.addEventListener('blur', () => {
+            if (inputCustomAvatar.value && inputCustomAvatar.value.startsWith('http')) {
+                imgPreview.src = inputCustomAvatar.value;
+            }
+        });
+
+        // 3. Salvar os dados novos no Banco (Tabela Usernames)
+        formPerfil.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            pStatus.style.display = "block";
+            pStatus.textContent = "Salvando perfil...";
+            pStatus.style.color = "#888";
+
+            let novoNome = inputUsernameEdit.value.trim();
+            let novaFoto = '';
+
+            const selectedRadio = document.querySelector('input[name="avatar-preset"]:checked').value;
+            if (selectedRadio === 'custom') {
+                novaFoto = inputCustomAvatar.value.trim();
+            } else {
+                novaFoto = selectedRadio;
+            }
+
+            try {
+                // Checa se o Username já não está em uso por outro e-mail
+                if (novoNome !== lblName.textContent) {
+                    const { data: existe, error: errExist } = await supabase
+                        .from('usernames')
+                        .select('username')
+                        .eq('username', novoNome)
+                        .not('email', 'eq', emailLogado) // exclui ele próprio
+                        .single();
+
+                    if (existe) {
+                        throw new Error("Este Username já está em uso por outra pessoa.");
+                    }
+                }
+
+                // Faz o update: como email é PK pro nosso fluxo ali, usamos ele no match
+                // (ou id se houvesse, mas nossa tabela original relacionou e-mail ou UUID)
+                const { error: errUpdate } = await supabase
+                    .from('usernames')
+                    .update({ 
+                        username: novoNome,
+                        avatar_url: novaFoto
+                    })
+                    .eq('email', emailLogado);
+
+                if (errUpdate) throw errUpdate;
+
+                pStatus.textContent = "Perfil atualizado! Você será redirecionado para a Home...";
+                pStatus.style.color = "#28a745";
+                
+                // Atualizar o Cache Local antes de puxar
+                sessionStorage.setItem('loggedInUser', novoNome);
+                lblName.textContent = novoNome;
+                
+                setTimeout(() => {
+                    window.location.href = 'home.html';
+                }, 2000);
+
+            } catch (err) {
+                console.error("Erro update perfil:", err.message);
+                pStatus.textContent = "Erro: " + err.message;
+                pStatus.style.color = "#dc3545";
+            }
+        });
+    }
+
 });

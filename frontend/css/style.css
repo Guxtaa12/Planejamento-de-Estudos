@@ -681,6 +681,32 @@ li.concluida .btn-remover {
     opacity: 0.8;
 }
 
+/* --- Edição de Perfil (Avatares) --- */
+.avatar-choice {
+    cursor: pointer;
+    position: relative;
+}
+.avatar-choice input[type="radio"] {
+    display: none;
+}
+.avatar-choice img {
+    width: 60px; height: 60px; border-radius: 50%; object-fit: cover;
+    border: 3px solid transparent; transition: 0.3s;
+    background: rgba(255,255,255,0.1);
+}
+.custom-avatar-btn {
+    width: 60px; height: 60px; border-radius: 50%; background: var(--cor-fundo);
+    border: 3px dashed var(--cor-borda); color: var(--cor-textos); display: flex; 
+    align-items: center; justify-content: center; font-size: 0.8em; font-weight: bold;
+    flex-direction: column; transition: 0.3s;
+}
+.avatar-choice input[type="radio"]:checked + img,
+.avatar-choice input[type="radio"]:checked + .custom-avatar-btn {
+    border-color: var(--cor-secundaria);
+    transform: scale(1.15);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
 /* --- Cadernos (Rich Text Editor) --- */
 .cadernos-layout {
     display: flex;
