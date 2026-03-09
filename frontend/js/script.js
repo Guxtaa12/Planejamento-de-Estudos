@@ -122,6 +122,94 @@ async function fazerLogin(event) {
 
 document.addEventListener('DOMContentLoaded', function () {
 
+    // --- Lógica de Dark Mode ---
+    const btnTheme = document.getElementById('btn-theme');
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    
+    // Aplica o tema salvo logo ao iniciar a página
+    if (currentTheme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        if(btnTheme) btnTheme.innerHTML = '<i class="fas fa-sun"></i>';
+    }
+
+    if (btnTheme) {
+        btnTheme.addEventListener('click', () => {
+            let theme = document.documentElement.getAttribute('data-theme');
+            if (theme === 'dark') {
+                document.documentElement.removeAttribute('data-theme');
+                localStorage.setItem('theme', 'light');
+                btnTheme.innerHTML = '<i class="fas fa-moon"></i>';
+            } else {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                localStorage.setItem('theme', 'dark');
+                btnTheme.innerHTML = '<i class="fas fa-sun"></i>';
+            }
+        });
+    }
+
+    // --- Lógica do Pomodoro ---
+    const pomodoroTimerDisplay = document.getElementById('pomodoro-timer');
+    if (pomodoroTimerDisplay) {
+        let timerInterval;
+        let timeLeft = 25 * 60; // 25 min padrão
+        let isRunning = false;
+
+        const btnPomoStart = document.getElementById('btn-pomo-start');
+        const btnPomoReset = document.getElementById('btn-pomo-reset');
+        const pomoTabs = document.querySelectorAll('.pomodoro-tab');
+
+        function updateDisplay() {
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            pomodoroTimerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function setTimer(minutes) {
+            clearInterval(timerInterval);
+            isRunning = false;
+            btnPomoStart.textContent = 'Iniciar';
+            timeLeft = minutes * 60;
+            updateDisplay();
+        }
+
+        pomoTabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                pomoTabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                setTimer(parseInt(tab.getAttribute('data-time')));
+            });
+        });
+
+        btnPomoStart.addEventListener('click', () => {
+            if (isRunning) {
+                clearInterval(timerInterval);
+                btnPomoStart.textContent = 'Retomar';
+                isRunning = false;
+            } else {
+                isRunning = true;
+                btnPomoStart.textContent = 'Pausar';
+                timerInterval = setInterval(() => {
+                    if (timeLeft > 0) {
+                        timeLeft--;
+                        updateDisplay();
+                    } else {
+                        clearInterval(timerInterval);
+                        isRunning = false;
+                        btnPomoStart.textContent = 'Iniciar';
+                        alert('Tempo finalizado! Hora de descansar ou focar.');
+                    }
+                }, 1000);
+            }
+        });
+
+        btnPomoReset.addEventListener('click', () => {
+            const activeTab = document.querySelector('.pomodoro-tab.active');
+            setTimer(parseInt(activeTab.getAttribute('data-time')));
+        });
+        
+        updateDisplay();
+    }
+
     // --- Lógica de Registro ---
     const formRegistrar = document.getElementById('form-registrar');
     if (formRegistrar) {
@@ -423,6 +511,11 @@ document.addEventListener('DOMContentLoaded', function () {
             // Define a posição EXATA que veio do banco de dados!
             div.style.left = nota.pos_x + 'px';
             div.style.top = nota.pos_y + 'px';
+            
+            // Define a cor vinda do banco de dados
+            if (nota.cor) {
+                div.style.backgroundColor = nota.cor;
+            }
 
             const texto = document.createElement('p');
             texto.textContent = nota.texto;
@@ -509,11 +602,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 const texto = inputTextoAnotacao.value.trim();
                 if (!texto || !userId) return;
 
+                let corSelecionada = '#ffeb3b'; // Amarelo Padrão
+                const radioCor = document.querySelector('input[name="postit-color"]:checked');
+                if (radioCor) corSelecionada = radioCor.value;
+
                 const novaNota = {
                     user_id: userId,
                     texto: texto,
                     pos_x: 50, // Posição inicial padrão quando nasce
-                    pos_y: 50  // Posição inicial padrão quando nasce
+                    pos_y: 50, // Posição inicial padrão quando nasce
+                    cor: corSelecionada
                 };
 
                 try {

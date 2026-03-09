@@ -1,26 +1,40 @@
 /* Variáveis de Cor e Fonte (iguais às anteriores) */
 :root {
     --cor-primaria: #6a11cb;
-    /* Roxo vibrante */
     --cor-secundaria: #00CDA0;
-    /* Azul vibrante */
     --cor-fundo: #f0f2f5;
-    /* Fundo claro */
+    --cor-fundo-grad-1: #6B2ED1;
+    --cor-fundo-grad-2: #00C6A2;
     --cor-card: #ffffff;
-    /* Branco para os cards */
+    --cor-card-bg: rgba(255, 255, 255, 0.85); /* Para o glassmorphism */
     --cor-texto-titulo: #333;
     --cor-texto-corpo: #555;
     --cor-texto-botao: #ffffff;
     --cor-borda: #e0e0e0;
     --cor-sombra: rgba(0, 0, 0, 0.1);
     --cor-delete: #e74c3c;
-    /* Vermelho para botão de remover */
     --cor-delete-hover: #c0392b;
     --cor-sucesso: #2ecc71;
-    /* Verde para mensagens de sucesso */
     --cor-textos: #4636a4;
+    --cor-input-bg: #fff;
     --fonte-principal: 'Poppins', sans-serif;
-    /* Fonte jovem */
+}
+
+[data-theme="dark"] {
+    --cor-primaria: #9d4edd;
+    --cor-secundaria: #00e5ff;
+    --cor-fundo: #121212;
+    --cor-fundo-grad-1: #1a0b2e;
+    --cor-fundo-grad-2: #002b24;
+    --cor-card: #1e1e2f;
+    --cor-card-bg: rgba(30, 30, 47, 0.85); /* Glassmorphism escuro */
+    --cor-texto-titulo: #e0e0e0;
+    --cor-texto-corpo: #cccccc;
+    --cor-texto-botao: #ffffff;
+    --cor-borda: #333344;
+    --cor-sombra: rgba(0, 0, 0, 0.5);
+    --cor-textos: #b8b8ff;
+    --cor-input-bg: #2a2a3e;
 }
 
 /* Reset básico e Estilos Globais (iguais) */
@@ -32,11 +46,12 @@
 
 body {
     font-family: var(--fonte-principal);
-    background: linear-gradient(135deg, #6B2ED1, #00C6A2);
+    background: linear-gradient(135deg, var(--cor-fundo-grad-1), var(--cor-fundo-grad-2));
     min-height: 100vh;
     color: var(--cor-texto-corpo);
     line-height: 1.6;
     padding: 20px;
+    transition: background 0.5s ease;
 }
 
 .container {
@@ -105,18 +120,20 @@ header p {
     background-color: rgba(255, 255, 255, 0.4);
 }
 
-/* Estilo dos Cards (igual) */
 .card {
-    background-color: var(--cor-card);
+    background-color: var(--cor-card-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     padding: 25px;
     margin-bottom: 25px;
-    border-radius: 10px;
-    box-shadow: 0 5px 15px var(--cor-sombra);
-    border: 1px solid var(--cor-borda);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px var(--cor-sombra);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .card h2 {
-    color: #4636a4;
+    color: var(--cor-textos);
     margin-bottom: 20px;
     font-size: 1.6em;
     font-weight: 600;
@@ -133,16 +150,20 @@ header p {
 
 /* Menu da Home Page */
 .home-menu {
-    background-color: var(--cor-card);
+    background-color: var(--cor-card-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     padding: 30px 40px;
     /* Mais padding lateral */
     border-radius: 16px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 8px 32px var(--cor-sombra);
+    border: 1px solid rgba(255, 255, 255, 0.18);
     text-align: center;
+    transition: background-color 0.3s ease;
 }
 
 .home-menu h2 {
-    color: #4636a4;
+    color: var(--cor-textos);
     margin-bottom: 25px;
     font-size: 1.8em;
 }
@@ -162,8 +183,8 @@ header p {
     justify-content: left;
     padding: 30px 50px;
     /* Aumente o padding */
-    background: rgba(255, 255, 255, 0.9em);
-    color: #4636a4;
+    background: var(--cor-card);
+    color: var(--cor-textos);
     text-decoration: none;
     border-radius: 13px;
     font-size: 20px;
@@ -227,6 +248,8 @@ header p {
     font-family: var(--fonte-principal);
     font-size: 1em;
     width: 100%;
+    background-color: var(--cor-input-bg);
+    color: var(--cor-texto-corpo);
 }
 
 #form-tarefa input[type="text"]:focus,
@@ -288,7 +311,7 @@ header p {
 }
 
 #lista-tarefas li {
-    background-color: #f9f9f9;
+    background-color: var(--cor-card);
     padding: 15px;
     margin-bottom: 10px;
     border-radius: 5px;
@@ -397,7 +420,7 @@ footer {
 
 .body-auth {
     /* Fundo diferente para login/registro */
-    background: linear-gradient(135deg, var(--cor-primaria), var(--cor-secundaria));
+    background: linear-gradient(135deg, var(--cor-fundo-grad-1), var(--cor-fundo-grad-2));
     display: flex;
     justify-content: center;
     align-items: center;
@@ -413,12 +436,16 @@ footer {
 }
 
 .auth-card {
-    background-color: var(--cor-card);
+    background-color: var(--cor-card-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     padding: 30px 40px;
     /* Mais padding lateral */
-    border-radius: 10px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    border-radius: 12px;
+    box-shadow: 0 8px 32px var(--cor-sombra);
+    border: 1px solid rgba(255, 255, 255, 0.18);
     text-align: center;
+    transition: background-color 0.3s ease;
 }
 
 .auth-card h1 {
@@ -469,6 +496,8 @@ footer {
     border-radius: 5px;
     font-family: var(--fonte-principal);
     font-size: 1em;
+    background-color: var(--cor-input-bg);
+    color: var(--cor-texto-corpo);
 }
 
 .form-auth input:focus {
@@ -593,17 +622,116 @@ li.concluida::after {
     /* Espaçamento à esquerda */
 }
 
-/* Opcional: Esconder o botão remover quando concluído, se desejar */
-
 li.concluida .btn-remover {
     display: none;
 }
 
+/* Botão de Tema Flutuante */
+.btn-theme {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: var(--cor-card-bg);
+    color: var(--cor-textos);
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.18);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    cursor: pointer;
+    font-size: 1.2em;
+    box-shadow: 0 4px 15px var(--cor-sombra);
+    transition: all 0.3s ease;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.btn-theme:hover {
+    transform: scale(1.1) rotate(15deg);
+    background-color: var(--cor-card);
+}
+
+/* --- Layout da Home (Responsive Flex) --- */
+.home-layout {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+@media (min-width: 800px) {
+    .container { max-width: 900px; }
+    .home-layout { flex-direction: row; align-items: stretch; justify-content: center; }
+    .home-menu, .pomodoro-card { flex: 1; }
+}
+
+/* --- Estilos do Timer Pomodoro --- */
+.pomodoro-card {
+    background-color: var(--cor-card-bg);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 8px 32px var(--cor-sombra);
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    transition: background-color 0.3s ease;
+}
+.pomodoro-card h2 {
+    color: var(--cor-textos);
+    margin-bottom: 20px;
+    font-size: 1.8em;
+}
+.pomodoro-tabs { 
+    display: flex; gap: 10px; justify-content: center; margin-bottom: 20px; 
+    flex-wrap: wrap; /* Importante para não quebrar no celular */
+}
+.pomodoro-tab {
+    background: transparent; border: 1px solid var(--cor-borda); color: var(--cor-texto-corpo); padding: 6px 14px; border-radius: 20px; cursor: pointer;
+    font-family: var(--fonte-principal); font-weight: 600; font-size: 0.9em; transition: all 0.2s ease;
+}
+.pomodoro-tab.active { background: var(--cor-primaria); color: #fff; border-color: var(--cor-primaria); }
+.pomodoro-tab:hover:not(.active) { background: rgba(0,0,0,0.05); }
+
+.pomodoro-timer { 
+    font-size: 4em; font-weight: 700; color: var(--cor-textos); margin: 20px 0; font-family: 'Courier New', monospace; line-height: 1;
+    text-shadow: 2px 2px 5px var(--cor-sombra);
+}
+
+.pomodoro-controls { display: flex; gap: 15px; justify-content: center; }
+.btn-pomo { 
+    padding: 12px 30px; border-radius: 25px; border: none; font-weight: 700; cursor: pointer; color: #fff; 
+    background: linear-gradient(135deg, var(--cor-secundaria), #02a381); transition: transform 0.2s, box-shadow 0.2s; font-size: 1em; box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
+}
+.btn-pomo.secondary { background: linear-gradient(135deg, var(--cor-delete), var(--cor-delete-hover)); }
+.btn-pomo:hover { transform: scale(1.05); box-shadow: 0 6px 15px rgba(0,0,0,0.2); }
 
 /* Estilos para os spans dentro do li (ajuste conforme necessário) */
 li span {
     flex-grow: 1;
     /* Faz o nome da tarefa ocupar espaço disponível */
+}
+
+/* --- Paleta de Cores para Post-its --- */
+.color-palette { 
+    display: flex; gap: 10px; align-items: center; margin-bottom: 15px; 
+}
+.color-palette > label { 
+    font-weight: 600; font-size: 0.9em; margin-right: 5px; color: var(--cor-texto-titulo); 
+}
+.color-palette input[type="radio"] { 
+    display: none; 
+}
+.color-btn { 
+    width: 30px; height: 30px; border-radius: 50%; cursor: pointer; border: 2px solid transparent; 
+    transition: transform 0.2s, border-color 0.2s; box-shadow: 0 2px 5px rgba(0,0,0,0.2); 
+    display: inline-block;
+}
+.color-palette input[type="radio"]:checked + .color-btn { 
+    border-color: #333; transform: scale(1.2); box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+[data-theme="dark"] .color-palette input[type="radio"]:checked + .color-btn {
+    border-color: #fff;
 }
 
 /* --- Estilos para Painel de Anotações Salvas --- */

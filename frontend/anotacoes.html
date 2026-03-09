@@ -24,6 +24,22 @@
                 <h2><i class="fa-solid fa-notes-medical"></i>Nova Anotação Rápida</h2>
                 <form id="form-anotacao">
                     <textarea id="texto-anotacao" placeholder="Digite sua nova anotação aqui..." required style="width: 100%; min-height: 80px; margin-bottom: 10px;"></textarea>
+                    
+                    <div class="color-palette">
+                        <label>Cor do Post-it?:</label>
+                        <input type="radio" name="postit-color" value="#ffeb3b" id="cor-amarelo" checked>
+                        <label for="cor-amarelo" class="color-btn" style="background-color: #ffeb3b;"></label>
+                        
+                        <input type="radio" name="postit-color" value="#ffc0cb" id="cor-rosa">
+                        <label for="cor-rosa" class="color-btn" style="background-color: #ffc0cb;"></label>
+                        
+                        <input type="radio" name="postit-color" value="#a2d5f2" id="cor-azul">
+                        <label for="cor-azul" class="color-btn" style="background-color: #a2d5f2;"></label>
+                        
+                        <input type="radio" name="postit-color" value="#c8e6c9" id="cor-verde">
+                        <label for="cor-verde" class="color-btn" style="background-color: #c8e6c9;"></label>
+                    </div>
+
                     <button type="submit" class="btn-add">Criar Post-it</button>
                 </form>
                 <p id="anotacao-add-message" class="mensagem sucesso"></p>
@@ -43,5 +59,6 @@
     <div id="quadro-anotacoes"></div>
 
     <script src="js/script.js"></script>
+<button id="btn-theme" class="btn-theme" title="Alternar Tema"><i class="fas fa-moon"></i></button>
 </body>
 </html>
