@@ -1,4 +1,4 @@
-# 📚 Plataforma de Planejamento de Estudos
+# 📚 Nidus
 
 Um sistema web interativo focado na organização pessoal, gerenciamento de tarefas e anotações rápidas. Desenvolvido no modelo Serverless (*Backend as a Service*) para ajudar estudantes a manterem o foco e a produtividade através de uma interface moderna e um backend robusto em nuvem.
 
@@ -42,3 +42,4 @@ Como o projeto agora é totalmente focado no Front-end e integrado a uma API em 
 3. **Comece a usar:**
    - Crie uma conta no menu de Registrar.
    - Entre no painel de estudos e teste a criação de tarefas e as anotações visuais dinâmicas!
+
