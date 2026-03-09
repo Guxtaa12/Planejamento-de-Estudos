@@ -142,9 +142,10 @@ async function fazerLogin(event) {
         // Pega o nome do usuário dos metadados
         const nomeUsuario = data.user.user_metadata.display_name || 'Usuário';
 
-        // Salva na sessão (embora o Supabase gerencie a sessão automaticamente, mantemos compatibilidade com o layout)
+        // Salva na sessão
         sessionStorage.setItem('loggedInUser', nomeUsuario);
-        sessionStorage.setItem('userId', data.user.id); // O Supabase usa UUID
+        sessionStorage.setItem('userId', data.user.id); 
+        sessionStorage.setItem('userEmail', emailFinalParaAuth); // <- IMPORTANTE PARA O PERFIL
 
         if (mensagemTexto) {
             mensagemTexto.style.color = '#28a745';
@@ -172,10 +173,18 @@ async function fazerLogin(event) {
 
 document.addEventListener('DOMContentLoaded', function () {
 
-    // --- Lógica de Dark Mode ---
     const btnTheme = document.getElementById('btn-theme');
     const currentTheme = localStorage.getItem('theme') || 'light';
     
+    // [NOVO] Recuperação da Sessão Auth do Supabase independente do fluxo de Login HTML.
+    // Isso evita que o "Meu Perfil" quebre se a pessoa apertar F5 ou vier da versão sem a chave userEmail:
+    supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session && session.user && session.user.email) {
+            sessionStorage.setItem('userEmail', session.user.email);
+            if (!sessionStorage.getItem('userId')) sessionStorage.setItem('userId', session.user.id);
+        }
+    });
+
     // Aplica o tema salvo logo ao iniciar a página
     if (currentTheme === 'dark') {
         document.documentElement.setAttribute('data-theme', 'dark');
